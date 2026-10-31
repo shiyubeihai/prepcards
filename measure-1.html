@@ -1,0 +1,1865 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#F4F9FF">
+<title>记忆卡</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+:root{--q:#16557F;--a:#2F6B4F;--tip:#8A7A66;--tipbg:#FDF8EC;--tipbar:#EFD9A8;
+--acc:#2E6FC4;--accD:#23559B;--sunD:#C9861A;--rose:#D2534E;--roseD:#A83C39;--em:#0E9464;
+--line:#DCE7F3;--line2:#C6D7EA;--tx:#1C2A38;--dim:#6A7C90;--dim2:#98A8BB}
+body{background:linear-gradient(180deg,#F6FAFF 0%,#E7F1FC 58%,#DDE9F9 100%);background-attachment:fixed;
+color:var(--tx);font:16px/1.5 system-ui,-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+-webkit-user-select:none;user-select:none;overscroll-behavior:none;display:flex;justify-content:center}
+.wrap{width:100%;max-width:560px;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:calc(9px + env(safe-area-inset-top)) 12px 7px}
+.brand{display:flex;flex-direction:column;gap:1px;min-width:0}
+.brand h1{margin:0;font-size:15.5px;font-weight:800;white-space:nowrap}
+.brand em{font-style:normal;font-size:10.5px;color:var(--dim2);white-space:nowrap}
+.counts{display:flex;gap:4px}
+.cbox{background:#fff;border:1px solid var(--line2);border-radius:10px;padding:4px 6px;text-align:center;min-width:40px;box-shadow:0 2px 5px rgba(36,86,150,.07)}
+.cbox span{display:block;font-size:9px;color:var(--dim)}
+.cbox b{font-size:13.5px;font-variant-numeric:tabular-nums}
+.cbox.new b{color:var(--acc)}.cbox.hot b{color:var(--rose)}.cbox.mk b{color:var(--em)}
+.gear{width:34px;height:34px;flex:0 0 auto;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--dim);font-size:16px;display:flex;align-items:center;justify-content:center}
+.gear:active{background:#EFF5FC}
+.screen{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.screen[hidden]{display:none!important}
+#scrReview,#scrCards,#scrIndex{padding:0 12px}
+.progline{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:2px 2px 8px;font-size:11.5px;color:var(--dim)}
+.progbar{flex:1 1 auto;height:6px;border-radius:4px;background:#D8E5F5;overflow:hidden}
+.progbar b{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#2E6FC4,#5E9BE6)}
+.cardwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding:2px 0 8px}
+.qcard{background:#fff;border:1px solid var(--line2);border-radius:20px;padding:19px 17px;box-shadow:0 6px 20px rgba(36,86,150,.1);display:flex;flex-direction:column;gap:13px;margin-bottom:auto;cursor:pointer}
+.qcard.marked{border-color:#8FD3BA;box-shadow:0 6px 20px rgba(14,148,100,.14)}
+.tagrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:#ECF1F6;color:#5C7080}
+.tag.ghost{background:#F1F5FA;color:#8FA0B2;font-weight:600}
+.tag.star{letter-spacing:0;padding:3px 7px}
+.tag.code{background:#EDF1F7;color:#7A879B;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;padding:3px 7px}
+.markbtn{margin-left:auto;width:30px;height:26px;border-radius:8px;flex:0 0 auto;border:1px solid var(--line2);background:#fff;color:#B9C6D6;font-size:13px;display:flex;align-items:center;justify-content:center}
+.markbtn.on{background:var(--em);border-color:transparent;color:#fff;box-shadow:0 2px 6px rgba(14,148,100,.32)}
+.idxline{font-size:10.5px;color:var(--dim2);margin-top:-7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idxline b{color:var(--dim)}
+.qtext{font-size:21px;font-weight:700;line-height:1.62;color:var(--q);word-break:break-word}
+.askhint{display:flex;align-items:center;justify-content:center;gap:7px;padding:18px 0 6px;color:var(--dim2);font-size:13px}
+.askhint i{font-style:normal;width:22px;height:22px;border-radius:50%;background:#EFF5FC;display:flex;align-items:center;justify-content:center;font-size:12px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--line2),transparent)}
+.atext{font-size:19px;line-height:1.78;color:var(--a);font-weight:600;word-break:break-word}
+.qtext sub,.qtext sup,.atext sub,.atext sup,.tipbox sub,.tipbox sup{font-size:.66em;line-height:0;font-weight:700}
+.atext b{font-weight:800;background:linear-gradient(transparent 62%,rgba(239,163,43,.3) 62%)}
+.tipbox{background:var(--tipbg);border-left:3px solid var(--tipbar);border-radius:0 10px 10px 0;padding:10px 12px;font-size:14px;line-height:1.65;color:var(--tip)}
+.tipbox u{text-decoration:none;font-weight:700;color:#8A6A3A}
+.refbox{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-top:1px dashed var(--line2);padding-top:10px}
+.refbox span{font-size:11px;color:var(--dim2);font-weight:700}
+.refchip{font:800 11px/1 ui-monospace,Menlo,Consolas,monospace;padding:5px 9px;border-radius:8px;background:#EAF2FC;color:var(--accD);border:1px solid #CFE0F3}
+.gradebar{flex:0 0 auto;padding:0 0 calc(10px + env(safe-area-inset-bottom))}
+.navrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 8px}
+.navbtn{height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--dim);font:700 13px/1 inherit}
+.navbtn:active{background:#EFF5FC}
+.navbtn:disabled{color:#C8D4E2;background:#F7FAFD;border-color:#E4EDF7}
+.navpos{font:800 12px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--dim2);font-variant-numeric:tabular-nums}
+.revealbtn{width:100%;height:54px;border-radius:16px;background:var(--acc);color:#fff;font:800 17px/1 inherit;letter-spacing:1px;border:0;box-shadow:0 6px 16px rgba(46,111,196,.3)}
+.revealbtn:active{background:var(--accD)}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grades.two{grid-template-columns:repeat(2,1fr)}
+.gbtn{height:58px;border-radius:16px;border:1.5px solid;font:800 16px/1.2 inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fff}
+.gbtn small{font-size:10px;font-weight:600;opacity:.72}
+.gbtn.f{color:var(--rose);border-color:#F1C4C2;background:#FFF6F5}
+.gbtn.o{color:var(--acc);border-color:#C2D9F2;background:#F5FAFF}
+.gbtn.e{color:var(--sunD);border-color:#F3DFB4;background:#FFFCF3}
+.gbtn.sel{box-shadow:0 0 0 2px currentColor inset}
+.gradednote{display:flex;align-items:center;justify-content:center;height:44px;border-radius:13px;background:#F2F8F5;color:#5E8B78;font:800 13.5px/1 inherit;border:1px dashed #CBE4D8}
+.state{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;padding:22px}
+.state .big{font-size:44px;line-height:1}
+.state h2{margin:0;font-size:20px;font-weight:800}
+.state p{margin:0;color:var(--dim);font-size:14px;line-height:1.7;max-width:320px}
+.state .row{display:flex;gap:9px;margin-top:4px;flex-wrap:wrap;justify-content:center}
+.pbtn{height:46px;padding:0 20px;border-radius:14px;border:1.5px solid var(--line2);background:#fff;color:var(--tx);font:800 15px/1 inherit}
+.pbtn.pri{background:var(--acc);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(46,111,196,.3)}
+.pbtn:active{transform:scale(.98)}
+.donebox{background:#fff;border:1px solid var(--line2);border-radius:18px;padding:16px;display:flex;box-shadow:0 6px 18px rgba(36,86,150,.09);width:100%;max-width:330px}
+.dstat{flex:1;text-align:center;border-right:1px solid var(--line)}
+.dstat:last-child{border:0}
+.dstat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.dstat span{font-size:11px;color:var(--dim)}
+.dstat.f b{color:var(--rose)}.dstat.o b{color:var(--acc)}.dstat.e b{color:var(--sunD)}
+.searchrow{flex:0 0 auto;display:flex;gap:8px;margin-bottom:8px}
+.searchrow input{flex:1 1 auto;height:42px;border-radius:12px;border:1px solid var(--line2);background:#fff;padding:0 13px;font:15px inherit;color:var(--tx);outline:none;-webkit-user-select:text;user-select:text;min-width:0}
+.iconbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line2);background:#fff;font-size:17px;color:var(--dim);flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.crumb{flex:0 0 auto;display:flex;align-items:center;gap:6px;margin-bottom:8px;background:#EAF2FC;border:1px solid #CFE0F3;border-radius:11px;padding:8px 11px;font-size:12px;font-weight:700;color:var(--accD)}
+.crumb[hidden]{display:none!important}
+.crumb span{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crumb b{font-size:11px;color:var(--dim);padding:2px 6px;border-radius:7px;background:#fff}
+.chips{flex:0 0 auto;display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:7px 13px;border-radius:20px;border:1px solid var(--line2);background:#fff;font-size:13px;font-weight:700;color:var(--dim);white-space:nowrap}
+.chip.on{background:var(--acc);border-color:transparent;color:#fff}
+.chip.mark{color:#0A7550;border-color:#B7E0D0}
+.chip.mark.on{background:var(--em);border-color:transparent;color:#fff}
+.listwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px}
+.litem{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:7px;display:flex;gap:10px;align-items:flex-start}
+.litem:active{background:#F7FBFF}
+.litem.marked{border-color:#A9DCC8;background:#F8FDFB}
+.ldot{width:4px;align-self:stretch;border-radius:3px;flex:0 0 auto;margin:2px 0;background:#8FA0AF}
+.lmain{flex:1 1 auto;min-width:0}
+.lq{font-size:14.5px;font-weight:700;line-height:1.5;color:var(--q);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lmeta{margin-top:4px;font-size:11px;color:var(--dim2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lflag{color:var(--em);font-weight:800}
+.lidx{color:#A8B8C8;font-size:10.5px}
+.lcode{color:#9AA6B8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;font-weight:800}
+.lright{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.stage{font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:#F1F5FA;color:#71879C}
+.stage.new{background:#E3EFFC;color:var(--accD)}
+.stage.due{background:#FDECEB;color:var(--roseD)}
+.ldel{font-size:11px;color:#C0AEA8;padding:2px 4px;border-radius:6px}
+.more{width:100%;height:44px;border-radius:12px;border:1px dashed var(--line2);background:transparent;color:var(--dim);font:700 13px inherit;margin-bottom:10px}
+.more.go{border-style:solid;border-color:#B7E0D0;background:#F4FBF8;color:#0A7550;font-weight:800}
+.empty{text-align:center;padding:40px 10px;color:var(--dim2);font-size:14px}
+.idxwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px}
+.idxsum{background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px 13px;margin-bottom:10px;font-size:12.5px;color:var(--dim);line-height:1.7}
+.idxsum b{color:var(--accD);font-weight:800}
+.idxrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:6px}
+.idxrow:active{background:#F7FBFF}
+.idxrow.l1{font-weight:800;font-size:15px;border-color:var(--line2)}
+.idxrow.l2{margin-left:12px;font-weight:700;font-size:14px;border-left:3px solid #CFE0F3}
+.idxrow.l3{margin-left:24px;font-size:13.5px;color:var(--dim);border-left:3px solid #E3EFFC}
+.idxname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idxcnt{font-size:11.5px;font-weight:800;color:var(--acc);background:#E3EFFC;border-radius:8px;padding:3px 8px;flex:0 0 auto}
+.idxarrow{color:var(--dim2);font-size:11px;width:12px;text-align:center;flex:0 0 auto}
+.idxtip{font-size:11.5px;color:var(--dim2);line-height:1.7;padding:12px 4px;border-top:1px dashed var(--line2);margin-top:8px}
+.fab{position:absolute;right:16px;bottom:calc(74px + env(safe-area-inset-bottom));width:54px;height:54px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:27px;font-weight:300;line-height:1;z-index:8;box-shadow:0 7px 20px rgba(46,111,196,.38);display:flex;align-items:center;justify-content:center}
+.fab[hidden]{display:none!important}
+.tabs{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line2);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -3px 14px rgba(36,86,150,.06)}
+.tab{flex:1;height:56px;border:0;background:transparent;color:var(--dim2);font:700 12px/1.3 inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative}
+.tab i{font-style:normal;font-size:18px;line-height:1}
+.tab.on{color:var(--accD)}
+.tab .badge{position:absolute;top:8px;margin-left:24px;min-width:16px;height:16px;border-radius:9px;background:var(--rose);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.mask{position:fixed;inset:0;background:rgba(18,32,50,.42);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.mask[hidden]{display:none!important}
+.sheet{width:100%;max-width:560px;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:90vh;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.sheet h3{margin:0;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:space-between}
+.sheet h3 em{font-style:normal;font-size:12px;color:var(--dim2);font-weight:600}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:700;color:var(--dim)}
+.field textarea,.field input{width:100%;border:1px solid var(--line2);border-radius:11px;padding:10px 12px;font:15px/1.6 inherit;color:var(--tx);background:#FAFCFF;outline:none;-webkit-user-select:text;user-select:text}
+.cnt{font-size:11px;color:var(--dim2);text-align:right}
+.cnt.over{color:var(--rose);font-weight:700}
+.sheet .row{display:flex;gap:8px;margin-top:2px}
+.sheet .row button{flex:1;height:46px;border-radius:13px;border:1.5px solid var(--line2);background:#fff;font:800 15px inherit;color:var(--tx)}
+.sheet .row .pri{background:var(--acc);border-color:transparent;color:#fff}
+.sheet .row .danger{color:var(--rose);border-color:#F1C4C2;background:#FFF7F6}
+.optrow{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:8px 12px;border-radius:10px;border:1.5px solid var(--line2);background:#fff;font:800 13px/1 inherit;color:var(--dim)}
+.opt.on{background:var(--acc);border-color:transparent;color:#fff}
+.opt.mk.on{background:var(--em);border-color:transparent;color:#fff}
+.idxhint{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim2)}
+.idxhint span{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idxhint b{color:var(--acc);font-weight:700}
+.note{font-size:11.5px;color:var(--dim2);line-height:1.7;background:#F6FAFF;border-radius:10px;padding:9px 11px}
+.note b{color:var(--dim);font-weight:800}
+.toast{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(86px + env(safe-area-inset-bottom));background:rgba(24,38,56,.95);color:#fff;font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:13px;z-index:60;opacity:0;transition:transform .22s,opacity .22s;pointer-events:none;max-width:88vw;text-align:center}
+.toast.show{transform:translate(-50%,0);opacity:1}
+#fatal{position:fixed;inset:0;z-index:99;background:#fff;padding:20px;font:12px/1.7 ui-monospace,Menlo,Consolas,monospace;color:#B3261E;overflow:auto;white-space:pre-wrap}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="312 记忆卡">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><h1 id="appName">记忆卡</h1><em id="hintSub">间隔复习</em></div>
+    <div class="counts">
+      <div class="cbox new"><span>新卡</span><b id="cNew">0</b></div>
+      <div class="cbox hot"><span>到期</span><b id="cDue">0</b></div>
+      <div class="cbox mk"><span>标记</span><b id="cMark">0</b></div>
+    </div>
+    <button class="gear" id="gear">⚙</button>
+  </div>
+
+  <div class="screen" id="scrReview" hidden>
+    <div class="cardwrap" id="cardwrap"></div>
+    <div class="gradebar" id="gradebar"></div>
+  </div>
+
+  <div class="screen" id="scrCards" hidden>
+    <div class="searchrow">
+      <input id="search" placeholder="搜索编号 / 问题 / 答案 / 标签" autocomplete="off">
+      <button class="iconbtn" id="btnImport">⤓</button>
+      <button class="iconbtn" id="btnExport">⤒</button>
+    </div>
+    <div class="crumb" id="crumb" hidden></div>
+    <div class="chips" id="chips"></div>
+    <div class="listwrap" id="listwrap"></div>
+  </div>
+
+  <div class="screen" id="scrIndex" hidden><div class="idxwrap" id="idxwrap"></div></div>
+
+  <button class="fab" id="fab" hidden>+</button>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="review"><i>◈</i>复习<span class="badge" id="tabBadge" hidden></span></button>
+    <button class="tab" data-tab="cards"><i>▤</i>卡片库</button>
+    <button class="tab" data-tab="index"><i>☰</i>索引</button>
+  </div>
+</div>
+
+<div class="mask" id="maskSet" hidden><div class="sheet">
+  <h3><span>设置 / 自检</span><em id="setStat"></em></h3>
+  <div class="field"><label>复习模式</label>
+    <div class="optrow" id="optMode">
+      <button class="opt" data-m="srs">间隔复习</button>
+      <button class="opt" data-m="cram">突击模式</button>
+    </div></div>
+  <div class="field"><label>每日新卡额度</label>
+    <div class="optrow" id="optNew">
+      <button class="opt" data-n="20">20</button><button class="opt" data-n="50">50</button>
+      <button class="opt" data-n="100">100</button><button class="opt" data-n="200">200</button>
+      <button class="opt" data-n="500">500</button>
+    </div></div>
+  <div class="field"><label>数据自检</label><div class="note" id="todayNote"></div></div>
+  <div class="row"><button id="setSeed">补齐题库</button><button id="setReindex">重算索引</button></div>
+  <div class="row"><button id="setDup">查重清理</button><button id="setResetAll" class="danger">重置全部进度</button></div>
+  <div class="row"><button id="setClear" class="danger">清空全部卡片</button></div>
+  <div class="row">
+    <button id="setToday">学时归零</button><button id="setResetToday">重置今日计数</button>
+    <button id="setDone" class="pri">完成</button>
+  </div>
+</div></div>
+
+<div class="mask" id="maskEdit" hidden><div class="sheet">
+  <h3><span id="edTitle">新建卡片</span><em id="edStage"></em></h3>
+  <div class="field"><label>问题</label><textarea id="edQ" rows="2" maxlength="400"></textarea><div class="cnt" id="cntQ">0 / 400</div></div>
+  <div class="field"><label>答案</label><textarea id="edA" rows="5" maxlength="2000"></textarea><div class="cnt" id="cntA">0 / 2000</div></div>
+  <div class="field"><label>易错提示（可选）</label><textarea id="edT" rows="2" maxlength="500"></textarea><div class="cnt" id="cntT">0 / 500</div></div>
+  <div class="field"><label>卡片索引</label>
+    <div class="optrow" id="edIdx1"></div><div class="optrow" id="edIdx2"></div><div class="optrow" id="edIdx3"></div>
+    <div class="idxhint"><span id="edIdxHint"></span><b id="edIdxGuess">按内容自动判断</b></div></div>
+  <div class="field"><label>标签（用 :: 分隔）</label><input id="edG"></div>
+  <div class="field"><label>编号（如 T001）</label><input id="edCode"></div>
+  <div class="field"><label>关联编号（逗号分隔）</label><input id="edRefs"></div>
+  <div class="field"><label>个人标记</label>
+    <div class="optrow" id="edMark">
+      <button class="opt" data-mk="0">无</button><button class="opt mk" data-mk="1">⚑ 已标记</button>
+    </div></div>
+  <div class="field"><label>重要度</label>
+    <div class="optrow" id="edStar">
+      <button class="opt" data-s="0">无</button><button class="opt" data-s="1">★</button>
+      <button class="opt" data-s="2">★★</button><button class="opt" data-s="3">★★★</button>
+    </div></div>
+  <div class="row">
+    <button id="edDel" class="danger" hidden>删除</button>
+    <button id="edCancel">取消</button><button id="edSave" class="pri">保存</button>
+  </div>
+</div></div>
+
+<div class="mask" id="maskImport" hidden><div class="sheet">
+  <h3><span>批量导入</span><em>每行一张卡</em></h3>
+  <div class="note">① <b>问题|答案|标签</b><br>② 表格两列直接粘（<b>问题⇥答案</b>）<br>
+  问题前写 <b>#T001</b> 保留编号；<b>★</b> 设重要度；<b>&lt;br&gt;易错：…</b> 变成提示框。</div>
+  <div class="field"><textarea id="impText" rows="9" placeholder="把卡片粘到这里……"></textarea></div>
+  <div class="row"><button id="impCancel">取消</button><button id="impOk" class="pri">导入</button></div>
+</div></div>
+
+<div class="mask" id="maskExport" hidden><div class="sheet">
+  <h3><span>导出备份</span><em id="expCount"></em></h3>
+  <div class="field"><textarea id="expText" rows="7" readonly></textarea></div>
+  <div class="row"><button id="expCopy">复制</button><button id="expFile" class="pri">下载 .json</button><button id="expClose">关闭</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   ① 内容配置区 —— 换内容只需要改这一段
+   --------------------------------------------------------------------------
+   卡片格式（SEED_SOURCE 里每行一张）：
+       问题 | 答案 | 标签
+   · 问题前写 #T001  → 编号
+   · 问题前写 ★ / ★★ / ★★★ → 重要度
+   · 答案里写 <b>重点</b> → 加粗高亮
+   · 答案里写 <br><u>易错：…</u> → 自动拆成黄色提示框
+   · 标签用 :: 分隔，例如 312::统计::ANOVA（最后一个显示为彩色标签）
+
+   每次改完内容，把下面的 seedVer 加 1，否则不会自动补进已有数据。
+   注意：内容里不要出现反引号 ` 和 ${ ，会破坏模板字符串。
+   ========================================================================== */
+
+const APP = {
+  name: '312 测量与统计',      // 顶栏标题
+  sub: '间隔复习',             // 副标题前缀
+  key: 'memcard.psy312.v1',    // 存档键名
+  cramKey: 'memcard.psy312.cram',
+  seedVer: 2                   // 内容版本号
+};
+
+const MAX_CARDS = 3000;
+const LIM_Q = 400, LIM_A = 2000, LIM_T = 500;
+const INTERVALS = [0,1,2,4,7,15,30,60];
+const STAGE_MAX = INTERVALS.length - 1;
+
+/* 索引第一层（固定） */
+const TOP = '心理学';
+
+/* 索引第二层：科目 */
+const SUBJECTS = ['实验心理学','心理统计','心理测量','普通心理学','发展心理学',
+                  '教育心理学','社会心理学','其他'];
+const DEFAULT_SUBJECT = '其他';
+
+/* 关键词 → 科目（从上往下匹配，先中先得） */
+const SUBJECT_RULES = [
+  [/心理统计|统计/,        '心理统计'],
+  [/心理测量|测量|信度|效度/, '心理测量'],
+  [/发展心理/,             '发展心理学'],
+  [/教育心理/,             '教育心理学'],
+  [/社会心理/,             '社会心理学'],
+  [/普通心理/,             '普通心理学'],
+  [/实验心理/,             '实验心理学']
+];
+
+/* 索引第三层：类型（从上往下匹配，先中先得；都不中则用 TYPES 最后一项） */
+const TYPES = ['核心概念','计算相关','关联知识','其他'];
+const TYPE_RULES = [
+  ['关联知识', /关系|区别|异同|联系|不同|为什么|为何|如何|怎样|影响|优点|缺点|局限|排序|属于|哪个|哪几|适用/],
+  ['计算相关', /怎么算|怎么分解|怎么计算|怎么求|如何算|求|计算|多少|几次|数目|配对数|自由度|平方和|等于|反推|推算/],
+  ['核心概念', /什么|定义|思想|含义|指什么|前提|假设|条件|要点|特征|原则|性质/]
+];
+
+/* 内置题库：格式 问题|答案|标签 */
+const SEED_SOURCE = `
+<b>#303 ★★★ CTT（经典测验理论）的真分数模型是什么？</b>|<b>X＝T＋E</b>（观测分数＝真分数＋误差分数）；方差形式 <b>S<sub>X</sub>²＝S<sub>T</sub>²＋S<sub>E</sub>²</b>。真分数是无数次测量的期望值，不是"真实能力"。<br><u>易错：真分数可望不可即，只能说"某次观测在真分数附近波动"。</u>|测量::M1::CTT
+<b>#304 ★★★ CTT 的三条假设是什么？</b>|<b>①误差的期望为 0（E(E)＝0，随机误差正负抵消）；②真分数与误差相互独立；③不同测量的误差之间相互独立</b>。三条假设共同保证了"观测分数的变异可分解为真变异＋误差变异"。|测量::M1::CTT
+<b>#305 ★★★ 信度的定义式是什么？如何理解它？</b>|<b>r<sub>xx</sub>＝S<sub>T</sub>²／S<sub>X</sub>²＝1−S<sub>E</sub>²／S<sub>X</sub>²</b>，即<b>真分数方差占观测分数方差的比例</b>。信度不是"两次测量的一致程度"这种笼统说法，而是<b>方差比</b>。<br><u>易错：信度是测验分数（群体）的属性，不是某个个体的属性。</u>|测量::M1::CTT
+<b>#306 ★★★ 随机误差与系统误差对信度、效度的影响有何不同？</b>|<b>随机误差使分数不稳定 → 降低信度，也降低效度</b>；<b>系统误差使分数稳定地偏一个方向 → 不影响信度，但降低效度</b>。<br><u>易错：这是全章最高频的一处辨析。例：量表刻度整体偏移 5 分，信度不变、效度下降。</u>|测量::M1::CTT
+<b>#307 ★★★ 信度的五种估计方法各反映什么？</b>|<b>重测＝稳定性（跨时间）·复本＝等值性（跨版本）·分半＝内部一致性（半个测验）·同质信度（α、KR-20）＝内部一致性·评分者＝评分者间一致性</b>。选择依据是"你想证明哪一类误差不重要"。|测量::M1::CTT
+<b>#308 ★★★ 重测信度的时间间隔为什么通常取 2–4 周？</b>|<b>间隔太短：被试记得上次答案，信度被记忆抬高（虚高）；间隔太长：被试本身发生变化（成熟、学习、经历），信度被真实变化压低</b>。<br><u>易错：报告重测信度必须注明间隔时间，否则数值无法解释。</u>|测量::M1::CTT
+<b>#309 ★★ 复本信度的前提条件是什么？什么是延迟复本？</b>|前提：<b>两个复本必须等值</b>（内容范围、难度、区分度、题目数相当）。<b>即时复本</b>只反映两版本的等值性；<b>延迟复本</b>（间隔一段时间）同时反映等值性与稳定性，数值通常更低。|测量::M1::CTT
+<b>#310 ★★★ 分半信度为什么要做斯皮尔曼—布朗校正？</b>|因为分半后求得的 r<sub>hh</sub> 只是<b>半个测验的信度</b>，而信度随题目数增加而提高。<b>校正的作用是把"半长测验"的信度推算回全长</b>，校正后数值必然高于原始 r<sub>hh</sub>。<br><u>易错：直接报 0.55 而不校正，会系统性低估信度。</u>|测量::M1::CTT
+<b>#311 ★★★ 斯皮尔曼—布朗校正公式与预言公式分别是什么？</b>|校正到全长：<b>r<sub>xx</sub>＝2r<sub>hh</sub>／(1＋r<sub>hh</sub>)</b>；预言题量变化后的信度：<b>r<sub>n</sub>＝n·r／[1＋(n−1)r]</b>。<br><u>易错：两式都叫斯—布朗，考场要看问的是"校正半长"还是"预测长度变化"。</u>|测量::M1::CTT
+<b>#312 ★★ 靠增加题量来提高信度，收益如何变化？</b>|<b>收益递减</b>：r＝0.60 时题量增至 3 倍仅升到 0.82；再翻倍收益更小。<b>原信度越低，加题效果越明显；原信度已高时几乎无效</b>。<br><u>易错：不能无限加题——题目增多还带来疲劳、作答时间与内容同质性下降。</u>|测量::M1::CTT
+<b>#313 ★★ KR-20 与 α 系数分别适用什么计分方式？</b>|<b>KR-20 只用于 0/1 计分（对／错）的题目</b>；<b>α 系数（克隆巴赫）适用于多重计分</b>（李克特 5 点、6 点等）。KR-21 是假设各题难度相近时的简化式。|测量::M1::CTT
+<b>#314 ★★★ α 系数偏低是否说明测验不同质？</b>|<b>不能这样推</b>。α 是<b>内部一致性的下限</b>，受题目异质、难度分布、样本同质性等多因素影响；<b>α 低可能是题目异质，也可能是样本过于同质</b>。<br><u>易错：反方向也不成立——α 很高不等于测验单维（题目高度重复也能得出高 α）。</u>|测量::M1::CTT
+<b>#315 ★★ 什么是评分者信度？常用什么指标？</b>|多名评分者对同一批作答评分时的<b>一致性</b>。连续分数用<b>评分者间相关</b>；等级／分类评定用 <b>Kappa 系数</b>（已扣除机遇一致）。<br><u>易错：只有两名评分者、且用相关时须注明；主观题（作文、投射测验）必须报告此项。</u>|测量::M1::CTT
+<b>#316 ★★★ 为什么同一测验用于不同团体时信度会不同？</b>|因为信度是<b>方差比</b>，<b>团体越异质（分数分布越宽），真分数方差越大，信度越高</b>；用于高度同质的团体（如全部是重点班学生）时信度会明显下降。<br><u>易错：报告信度必须说明样本团体；"这个测验信度 0.9"是不完整的说法。</u>|测量::M1::CTT
+<b>#317 ★★ 测验难度与信度是什么关系？</b>|<b>难度中等、分数分布最广时信度最高</b>；题目普遍过易或过难会使分数集中在两端、方差变小，信度下降。<b>理想是难度分布较广、多数居中</b>。|测量::M1::CTT
+<b>#318 ★★★ 速度测验为什么不宜用分半信度和 α 系数？</b>|因为速度测验的题目<b>并非平行</b>：得分差异主要来自"做了多少题"而非"每题答对概率"。分半后两半的题目在位置上不等值，<b>内部一致性系数会严重低估信度</b>。此类测验宜用<b>重测信度或复本信度</b>。<br><u>易错：这是"信度方法选择"的经典陷阱题。</u>|测量::M1::CTT
+<b>#319 ★★★ 测量标准误的公式是什么？它衡量什么？</b>|<b>SE＝S<sub>X</sub>√(1−r<sub>xx</sub>)</b>，用观测分数的标准差 S<sub>X</sub> 与信度计算。它衡量<b>个体分数的波动范围</b>，用于对单个分数作区间解释。<br><u>易错：SE 越小说明分数越可靠；公式里用的是 S<sub>X</sub> 而不是 S<sub>T</sub>。</u>|测量::M1::CTT
+<b>#320 ★★ 如何用测量标准误解释某个人的测验分数？</b>|构造<b>真分数置信区间：X±1.96SE（95%）</b>，说明"该生真分数大致落在此范围"。<br><u>易错：不能只看原始分排名就下结论——两个相差几分的学生，其真分数区间可能大幅重叠，差异未必真实。</u>|测量::M1::CTT
+<b>#321 ★★★ 信度与效度是什么关系？</b>|<b>信度是效度的必要非充分条件：效度 ≤ √信度</b>。信度低时效度必然低；<b>信度高时效度不一定高</b>（可能稳定地测错了东西）。<br><u>易错：关系是"效度≤√信度"，不是"效度≤信度"；信度 0.81 时效度最高 0.90。</u>|测量::M1::CTT
+<b>#322 ★★ 如果某测验重测信度 0.92、α 系数 0.65，说明什么？</b>|说明该测验<b>跨时间稳定，但内部一致性不足</b>——各部分题目测的可能不是同一个特质（异质），或题目间难度差异过大。<b>测验需要修订以提高同质性</b>。<br><u>易错：两个系数高低不一致本身就是信息，不要只报一个数。</u>|测量::M1::CTT
+<b>#323 ★★ 如果某测验 α 系数 0.93、重测信度 0.58，说明什么？</b>|说明<b>同一次施测内部高度一致，但跨时间不稳定</b>——可能测的是易受状态影响的变量（情绪、疲劳、近期经验），或重测间隔过长、期间发生了真实变化。<b>不适合用于跨时间预测</b>。|测量::M1::CTT
+<b>#324 ★★★ CTT 的主要局限是什么？</b>|<b>①假设所有题目平行（难度、区分度、误差方差相同），现实中难满足；②信度、标准误被假定为对所有被试相同，忽略个体差异；③测验分数依赖特定样本（样本依赖）；④题目参数依赖特定测验（测验依赖）</b>。|测量::M1::CTT
+<b>#325 ★★ 概化理论（GT）与 CTT 是什么关系？</b>|GT 是 <b>CTT 的扩展</b>：把单一"误差"拆成<b>多个方差成分</b>（如题目、评分者、时间、情境），用<b>概化系数与决策研究</b>回答"这个分数能推广到哪些条件"。<b>CTT 是 GT 的特例</b>。|测量::M1::CTT
+<b>#326 ★ 项目反应理论（IRT）与 CTT 的核心区别？</b>|<b>IRT 用项目特征曲线（ICC）建模"能力与答对概率"的关系，项目参数（难度 b、区分度 a、猜测 c）不依赖特定样本，被试能力估计也不依赖特定题目</b>；CTT 的题目参数与样本绑定。IRT 计算更复杂、需大样本。|测量::M1::CTT
+<b>#327 ★★ 信度系数达到多少才算可接受？</b>|惯例：<b>0.90 以上优秀；0.80–0.90 良好；0.70–0.80 可用于研究；低于 0.70 不宜用于个体决策</b>。用于<b>个体鉴别（如临床诊断）</b>要求更高（≥0.90），用于<b>团体比较</b>可略低。<br><u>易错：标准取决于用途，不是绝对数字。</u>|测量::M1::CTT
+<b>#328 ★★ 提高信度的常用方法有哪些？</b>|<b>增加题量（同质题目）、提高题目同质性、难度适中且分布广、统一施测条件与指导语、延长作答时间、减少评分主观性（明确评分标准、双评）、控制被试状态</b>。|测量::M1::CTT
+<b>#329 ★ 什么是测验分数的"样本依赖"与"测验依赖"？</b>|<b>样本依赖</b>：题目难度、区分度会随施测样本不同而变化；<b>测验依赖</b>：被试能力估计会随所测题目不同而变化。二者都是 <b>CTT 的局限</b>，也是 IRT 试图解决的问题。|测量::M1::CTT
+<b>#330 ★★ 分半信度有哪两种分法？各有什么问题？</b>|<b>奇偶分半</b>（最常用，两半在内容与难度上较等值）与<b>前后分半</b>（问题大：前半常有练习不足、后半有疲劳，两半不等值，信度被低估）。<br><u>易错：题目按难度递增排列时，前后分半尤其不可用。</u>|测量::M1::CTT
+<b>#331 ★ 信度系数可以超过 1 或为负吗？</b>|理论上不应超过 1；<b>实测中出现负值或极小值，通常说明数据有问题</b>（如题目反向计分未处理、样本极小、某题与总分负相关）。<br><u>易错：反向题未重新编码是 α 异常低的常见原因。</u>|测量::M1::CTT
+<b>#332 ★★ 为什么说"信度是测验的属性，也是样本的属性"？</b>|信度同时取决于<b>测验本身（题目数、同质性、难度）</b>与<b>样本（异质性、能力分布）</b>。同一测验施于不同样本可得不同信度，<b>故报告信度时必须注明样本</b>。|测量::M1::CTT
+<b>#333 ★ 内部一致性信度高，是否意味着测验单维？</b>|<b>不意味着</b>。α 高只说明题目之间相关一致，<b>高度重复的题目也能产生高 α</b>，而测验实际可能包含多个维度。<b>检验维度结构需用因素分析</b>。|测量::M1::CTT
+<b>#334 ★★★ 情境：某测验报告"信度 0.91"，这个说法缺了什么？</b>|缺三样：<b>①哪种信度（重测／复本／分半／α／评分者）；②施测样本（人数、年龄、能力分布）；③重测的时间间隔（若为重测）</b>。三者缺一，信度数值无法解释，也无法与他测验比较。|测量::M1::CTT
+<b>#335 ★★★ 效度的定义是什么？为什么说效度是"相对的"？</b>|测验<b>能测出所要测的心理特质的程度</b>。相对性在于：<b>效度总是相对于特定用途、特定群体、特定效标而言</b>，没有抽象的"高效度测验"。<br><u>易错：说"这个测验很有效"必须补上"用于什么目的、对谁"。</u>|测量::M2::效度
+<b>#336 ★★★ 内容效度指什么？用什么方法确定？</b>|题目对<b>所要测量的内容范围的代表性程度</b>。方法是<b>逻辑分析</b>：专家判断 ＋ <b>双向细目表</b>（内容领域 × 认知层次），检查题目是否覆盖各知识点及层次比例。<br><u>易错：内容效度不是统计指标，不能说"用相关法求内容效度"。</u>|测量::M2::效度
+<b>#337 ★★ 内容效度最适用于哪类测验？不适用于哪类？</b>|最适用<b>成就测验、教育测验</b>（有明确的内容范围）；<b>不适用</b>于<b>能力倾向测验与人格测验</b>——因为它们没有明确界定的内容总体，其效度验证靠结构效度与效标关联效度。<br><u>易错：不是"所有测验都要先有内容效度"。</u>|测量::M2::效度
+<b>#338 ★★★ 结构效度指什么？为什么它的验证是"累积过程"？</b>|指测验<b>是否真的测到了某个理论构念</b>。因为构念是抽象的、无法直接观测，<b>没有单一指标能证明它</b>，只能靠多类证据逐步累积、互相印证或彼此矛盾。|测量::M2::效度
+<b>#339 ★★★ 结构效度有哪些证据来源？</b>|<b>①会聚效度与区分效度；②因素分析（探索性与验证性）；③发展变化（随年龄增长而提高）；④实验操作（训练或干预后分数上升）；⑤内部一致性；⑥与其他测验的相关模式；⑦作答过程分析</b>。|测量::M2::效度
+<b>#340 ★★★ 会聚效度与区分效度是什么关系？</b>|<b>会聚效度：与理论上应相关的构念测量的相关要高；区分效度：与理论上不应相关的构念测量的相关要低</b>。二者<b>必须同时具备</b>——只高不低说明区分不足（测得过于宽泛），只低不高说明会聚不足（测的不是目标构念）。|测量::M2::效度
+<b>#341 ★★★ 效标关联效度指什么？什么叫效度系数？</b>|测验分数与<b>效标</b>（独立于测验的外部标准）的关联程度。二者的<b>相关系数即效度系数</b>。效标必须有独立来源，否则会污染效度。|测量::M2::效度
+<b>#342 ★★★ 同时效度与预测效度的区别是什么？</b>|<b>区别只在效标与测验的时间关系</b>：<b>同时效度</b>的效标与测验同时获取（如新量表与已有诊断结果比较）；<b>预测效度</b>的效标在未来获取（如入学测验与一年后成绩）。<br><u>易错：区别不在效标类型，而在时间先后。</u>|测量::M2::效度
+<b>#343 ★★★ 效标污染与效标缺陷分别指什么？效果方向如何？</b>|<b>效标污染</b>：效标本身包含了测验所测的内容（如用教师评分作为效标，而教师已看过测验分数），会使效度<b>虚高</b>。<b>效标缺陷</b>：效标未能涵盖所测构念的全部方面，会使效度<b>虚低</b>。二者方向相反。|测量::M2::效度
+<b>#344 ★★★ 为什么效度的理论上限是 √r<sub>xx</sub>？</b>|因为<b>测验分数中的误差不可能是有效变异</b>。设 r<sub>xy</sub> 为观测效度，则 r<sub>xy</sub>² ≤ r<sub>xx</sub>（测验分与效标分的相关平方不超过测验自身的信度），故 r<sub>xy</sub> ≤ √r<sub>xx</sub>。<br><u>易错：意义是"提高效度必须先提高信度"，但信度高并不保证效度高。</u>|测量::M2::效度
+<b>#345 ★★ 什么是效度的衰减校正？</b>|因为测验与效标都有测量误差，观测相关<b>系统性低于真实相关</b>。校正公式 <b>r<sub>c</sub>＝r<sub>xy</sub>／√(r<sub>xx</sub>·r<sub>yy</sub>)</b>，估计"若两者都完全可靠时的相关"。<br><u>易错：校正值可能明显高于观测值，报告时两者都应给出，并说明哪个是理论估计。</u>|测量::M2::效度
+<b>#346 ★★★ 效度系数 r＝0.50 意味着预测有多准？</b>|<b>解释率 r²＝0.25，即效标变异的 25% 可由测验解释，其余 75% 来自其他因素与误差</b>。绝不能直接说"预测准确率 50%"。<br><u>易错：r 与 r² 的混淆是最常见的效度表述错误；判断测验好坏要看 r²。</u>|测量::M2::效度
+<b>#347 ★★ 影响效度的主要因素有哪些？</b>|<b>测验本身（题目质量、长度、难度、同质性）；样本（异质性、代表性——越异质效度越高）；效标（可靠性、是否污染或缺陷）；施测条件与被试状态；信度水平（信度低则效度必低）</b>。|测量::M2::效度
+<b>#348 ★★ 提高效度的常用方法有哪些？</b>|<b>明确测验目的与适用范围；合理选题与组卷（提高内容代表性）；先提高信度；选择可靠、独立的效标；控制施测条件；扩大样本异质性与代表性；进行项目分析剔除劣质题</b>。|测量::M2::效度
+<b>#349 ★ 什么是表面效度？它算不算真正的效度？</b>|<b>表面效度指被试（或外行）主观上"看起来像在测什么"的程度</b>，<b>不是真正的效度指标</b>。<b>表面效度太高会使被试易猜出目的而产生要求特征，反而损害效度</b>；人格测验常刻意降低表面效度。|测量::M2::效度
+<b>#350 ★★ 什么是增益效度？</b>|在已有预测源之外，<b>新测验能额外提高预测效标的程度</b>。即使新测验本身有效度，若与已有工具高度重叠，其<b>增益效度可能接近零</b>。这是选拔与诊断中最实用的效度概念。|测量::M2::效度
+<b>#351 ★★ 情境：某测验内容效度高，但预测效度低，可能原因是什么？</b>|<b>①测验所测内容与效标所反映的能力不匹配（如考记忆但效标是创造力表现）；②信度不足导致效度受限；③效标本身不可靠或有缺陷；④样本同质、全距受限；⑤施测条件不当</b>。先查信度与效标，再谈内容。|测量::M2::效度
+<b>#352 ★ 实验效度与测验效度是同一概念吗？</b>|<b>不是</b>。实验效度（内部／外部／构念／统计结论）问"<b>因果推断与推广是否成立</b>"；测验效度（内容／结构／效标关联）问"<b>这个测量工具是否测到了它声称要测的东西</b>"。两套概念在不同学科语境下使用，答题时不可混用。|测量::M2::效度
+<b>#353 ★★★ 情境：某智力测验报告"效度 0.85"，如何判断这个说法是否可信？</b>|查三处：<b>①哪种效度（内容／结构／效标关联）；②效标是什么、是否独立（有无污染）；③该测验信度是多少（0.85 已逼近 √r<sub>xx</sub> 上限，若信度只有 0.75，则上限仅 0.87，需警惕）</b>。三项不清即无法采信。|测量::M2::效度
+<b>#354 ★★★ 难度 P 的公式是什么？P 大表示容易还是难？</b>|<b>P＝答对人数／总人数（通过率）</b>；<b>P 越大表示题目越容易</b>（与"难度"字面相反）。<br><u>易错：全章最易错处。答题时用"通过率"表述最稳，避免"难度高"的歧义。</u>|测量::M3::项目常模
+<b>#355 ★★★ 极端分组法测难度时，高低分组各取多少比例？</b>|<b>各取 27%</b>（按总分排序后取高、低两端）。公式 <b>P＝(P<sub>H</sub>＋P<sub>L</sub>)／2</b>。<br><u>易错：不是 50%，也不是 33%。取 27% 是因为此时两组差异最稳定。</u>|测量::M3::项目常模
+<b>#356 ★★ 选择题为什么要做猜测校正？公式是什么？</b>|因为被试可能<b>凭猜测答对</b>，使 P 高估其实际掌握水平。校正公式 <b>CP＝(KP−1)／(K−1)</b>，K 为选项数。<br><u>易错：K 是选项数（四选一则 K＝4）；非选择题不做此校正。</u>|测量::M3::项目常模
+<b>#357 ★★★ 难度与区分度是什么关系？</b>|<b>P＝0.50 时题目方差最大，区分度 D 达到理论最大</b>；<b>P 接近 0 或 1 时，所有人表现趋同，D 趋近 0</b>。故过易或过难的题区分力都差。|测量::M3::项目常模
+<b>#358 ★★★ 鉴别指数 D 的公式与评价标准？</b>|<b>D＝P<sub>H</sub>−P<sub>L</sub></b>（通过率之<b>差</b>）。标准：<b>≥0.40 很好；0.30–0.39 良好；0.20–0.29 尚可需修改；＜0.19 淘汰</b>。<br><u>易错：是之差不是之比。0.80 与 0.40 的 D 是 0.40，不是 2.0。</u>|测量::M3::项目常模
+<b>#359 ★★ 项目—总分相关常用哪种相关系数？为什么？</b>|常用<b>点二列相关</b>（答对／答错是二分变量，总分是连续变量）。它利用全部被试的信息，比极端分组法的 D 更稳定。<b>若二分变量本质连续（如及格／不及格）则用二列相关</b>。|测量::M3::项目常模
+<b>#360 ★★ 项目筛选的完整流程是什么？</b>|<b>①看难度分布是否合理（多数居中、全距较广）；②看区分度是否达标（D 或项目—总分相关）；③做选项分析（干扰项是否有人选、是否有效）；④检查内容代表性与表述清晰度；⑤综合以上定稿</b>。难度与区分度冲突时，<b>优先保区分度</b>。|测量::M3::项目常模
+<b>#361 ★★ 什么是干扰项分析？无效干扰项如何处理？</b>|检查每个错误选项被选择的<b>人数比例</b>。若某干扰项<b>几乎无人选择</b>，说明它不起作用，等于该题实际选项数减少（相当于降低 K、抬高猜测率），应<b>修改或删除该干扰项</b>。|测量::M3::项目常模
+<b>#362 ★★★ 常模团体的核心要求是什么？</b>|<b>对目标总体的代表性</b>，通过<b>分层随机抽样</b>实现（按年龄、性别、教育、地区等关键变量分层）。<b>常模只对相应团体有效</b>，用于其他群体即为误用。|测量::M3::项目常模
+<b>#363 ★★★ 为什么说"常模是相对的"？</b>|因为常模分数只表示<b>个体在特定参照团体中的相对位置</b>，不表示绝对水平。同一原始分在不同常模（如全国常模与农村常模）下可对应完全不同的百分等级。|测量::M3::项目常模
+<b>#364 ★★ 发展常模有哪几种？各有什么局限？</b>|<b>年龄当量（智龄）、年级当量</b>。局限：<b>单位不等距（年龄越大，每年增长的能力越少）；只适用于随年龄单调增长的变量；不能用于成人</b>。|测量::M3::项目常模
+<b>#365 ★★★ 组内常模主要有哪几类？</b>|<b>百分等级常模与标准分数常模</b>。标准分数包括 <b>z 分数、T 分数、离差智商、标准九</b>。组内常模的核心是"与同团体他人比较"。|测量::M3::项目常模
+<b>#366 ★★★ z、T、离差智商、标准九的均值与标准差各是多少？</b>|<b>z：均值 0、SD 1；T：均值 50、SD 10；离差智商：均值 100、SD 15（韦氏）；标准九：均值 5、SD 2</b>。<br><u>易错：斯坦福—比奈的离差智商 SD＝16，与韦氏不同，题目常在此设陷。</u>|测量::M3::项目常模
+<b>#367 ★★ 百分等级作为常模分数有什么局限？</b>|<b>它是顺序量表，单位不等距</b>——分布中段 1 个百分等级对应的原始分差距小，两端对应的差距大。<b>不能加减、不能求平均、不能做参数检验</b>。|测量::M3::项目常模
+<b>#368 ★★★ 常模参照测验与标准参照测验有什么区别？</b>|<b>常模参照：解释个体在团体中的相对位置（看排名），必须有常模</b>；<b>标准参照：对照预先设定的绝对标准判断是否达标（如驾照考试），不需要常模</b>。<br><u>易错：标准参照测验不是"没有效度"，它的效度靠内容效度与标准设定。</u>|测量::M3::项目常模
+<b>#369 ★★ 什么是测验等值？为什么需要它？</b>|把<b>不同版本（或不同年份）测验的分数转换到同一量表上，使其可比</b>的过程。因为不同版本的难度不同，原始分不能直接比较。常用<b>铆题设计（共同题）</b>实现。|测量::M3::项目常模
+<b>#370 ★★ 什么是天花板效应与地板效应？对测量有什么影响？</b>|<b>天花板：题目过易，多数人接近满分；地板：题目过难，多数人接近零分</b>。二者都会使<b>分数方差变小、无法区分个体差异、信度与效度双双下降</b>。|测量::M3::项目常模
+<b>#371 ★★ 一套测验的理想难度分布是什么样的？</b>|<b>全距较广、多数题目难度居中（P 在 0.30–0.70），少量极易与极难题</b>。这样既保证整体区分力，又能区分高低两端。若为选拔性测验，可适当增加难题比例。|测量::M3::项目常模
+<b>#372 ★★ 区分度低的可能原因有哪些？</b>|<b>①题目过易或过难；②题意模糊、存在歧义；③题目与所测特质无关；④答案有暗示或可猜；⑤题目表述冗长、考查阅读而非目标能力；⑥样本同质、全距受限</b>。先查难度，再查表述。|测量::M3::项目常模
+<b>#373 ★ 什么是项目特征曲线（ICC）？</b>|IRT 中描述<b>"被试能力水平与答对该题概率"关系</b>的 S 形曲线。曲线<b>拐点位置反映难度，陡峭程度反映区分度，下端高度反映猜测概率</b>。|测量::M3::项目常模
+<b>#374 ★★ 情境：某数学测验对高三学生区分度很好，对初三学生几乎无区分度，为什么？</b>|<b>对初三学生而言题目普遍过难（地板效应），多数人接近零分，分数方差极小，故无法区分</b>。这说明<b>项目参数依赖施测样本（样本依赖性）</b>，同一测验不能跨能力水平通用。|测量::M3::项目常模
+<b>#375 ★ 常模的建立需要哪些步骤？</b>|<b>①确定目标总体与常模团体；②设计抽样方案（分层随机）；③实施测验；④统计各常模分数（百分等级、标准分、平均数与标准差）；⑤编制常模表；⑥定期修订（常模会过时）</b>。|测量::M3::项目常模
+<b>#376 ★★ 测验分数解释时应遵循哪些原则？</b>|<b>①结合常模或标准解释，不用原始分直接下结论；②说明测量误差（给出置信区间）；③多源信息综合（不只凭单一测验）；④考虑测验的适用群体与用途；⑤避免标签化</b>。|测量::M3::项目常模
+<b>#377 ★ 为什么常模需要定期修订？</b>|因为<b>群体能力水平随时间变化（教育普及、营养改善导致整体分数上升，即弗林效应）</b>，使旧常模失效；同时<b>人口结构变化</b>也会使原样本不再具有代表性。|测量::M3::项目常模
+<b>#378 ★★★ 编制心理测验的一般程序是什么？</b>|<b>①确定测验目的与对象；②制定双向细目表；③编制题目；④预测与项目分析；⑤合成测验（选题、组卷、编排）；⑥标准化（施测、评分、常模）；⑦编写测验手册与信效度验证</b>。|测量::M4::测验
+<b>#379 ★★★ 双向细目表的作用是什么？</b>|以<b>"内容领域 × 认知层次"的二维表格</b>规定各知识点、各层次的题目比例，从而<b>保证内容效度</b>并控制试卷结构。<b>它是编制第一步就要有的核心工具</b>。|测量::M4::测验
+<b>#380 ★★★ 测验标准化的三要素是什么？</b>|<b>施测标准化（统一指导语、时限、环境）、评分标准化（明确计分规则、减少主观性）、常模（代表性样本的分数分布）</b>，另需信度与效度证据。<br><u>易错：只建立常模不算标准化测验，三者缺一不可。</u>|测量::M4::测验
+<b>#381 ★★ 一份完整的测验手册应包含哪些内容？</b>|<b>测验目的与理论依据、适用对象与范围、施测程序与指导语、计分方法、常模资料、信度与效度证据、题目参数、使用资格与注意事项</b>。|测量::M4::测验
+<b>#382 ★★★ 第一个正式智力量表是什么？由谁编制？</b>|<b>比奈—西蒙量表（1905 年，法国）</b>，比奈与西蒙编制，用于鉴别需要特殊教育的儿童。它是<b>第一个科学的智力测验</b>。|测量::M4::测验
+<b>#383 ★★★ 比率智商的公式是什么？为什么被淘汰？</b>|<b>IQ＝(智龄 MA／实龄 CA)×100</b>。淘汰原因：<b>智龄增长会停止（约 15–16 岁后），而实龄持续增长，导致成人智商逐年下降</b>；且各年龄段的单位不等距。|测量::M4::测验
+<b>#384 ★★★ 离差智商的含义是什么？为什么取代了比率智商？</b>|<b>IQ＝100＋15z（韦氏）</b>，表示个体在同龄群体中的相对位置。<b>取代原因</b>：<b>它不依赖智龄，可用于任何年龄；各年龄段分布恒定（均值 100、SD 15），单位等距</b>。|测量::M4::测验
+<b>#385 ★★ 韦氏智力量表的结构特点是什么？</b>|分为<b>言语量表与操作量表</b>两大部分，各含若干分测验，可分别得出言语智商、操作智商与总智商。<b>离差智商 SD＝15</b>。适用年龄分层（WPPSI 幼儿／WISC 儿童／WAIS 成人）。|测量::M4::测验
+<b>#386 ★★ 瑞文推理测验的特点与适用场景？</b>|<b>非言语、图形推理，文化公平性较好；可个别也可团体施测；适用年龄范围广</b>。常用于<b>跨文化比较、语言障碍者、大规模筛查</b>。<br><u>易错：测的是一般推理／流体能力，说"完全无文化影响"过于绝对。</u>|测量::M4::测验
+<b>#387 ★★★ MMPI 的结构是什么？</b>|<b>明尼苏达多相人格调查表：4 个效度量表（L、F、K、？）＋10 个临床量表</b>（如疑病、抑郁、癔病、精神病态、偏执、精神衰弱、精神分裂、轻躁狂、社会内向等）。用于<b>精神科辅助诊断</b>。<br><u>易错：L、F、K、？是效度量表，不是临床量表——最高频对应错误。</u>|测量::M4::测验
+<b>#388 ★★ 16PF 由谁编制？用什么方法？测什么？</b>|<b>卡特尔编制，用因素分析法</b>得到 <b>16 种根源特质</b>；此外可计算次级因素（如焦虑性、内外向性、心理健康水平等）。|测量::M4::测验
+<b>#389 ★★★ EPQ 包含哪几个维度？L 量表是什么？</b>|<b>E（内外向）、N（神经质）、P（精神质）</b>三个人格维度，外加 <b>L（掩饰／说谎）效度量表</b>。<br><u>易错：L 不属于人格维度，是效度量表；P 分高表示孤僻、冷漠、不近人情，不等于"精神病"。</u>|测量::M4::测验
+<b>#390 ★★★ 罗夏墨迹测验与 TAT 分别是什么？</b>|<b>罗夏：10 张墨迹图（5 黑白、2 黑白红、3 彩色），让被试说出看到什么</b>；<b>TAT（主题统觉测验，默里）：约 30 张意义模糊的图片，让被试编故事</b>。二者都是<b>投射测验</b>。|测量::M4::测验
+<b>#391 ★★★ 投射测验的共同特点与优缺点是什么？</b>|特点：<b>刺激意义模糊、反应自由、可绕过防御</b>。优点：<b>能探索无意识内容、减少表面效度带来的作假</b>。缺点：<b>信效度普遍低于自陈量表、评分与解释依赖主试经验、耗时长</b>。<br><u>易错：不能说"投射测验更深入所以更好"。</u>|测量::M4::测验
+<b>#392 ★★ 李克特量表的结构与特点是什么？</b>|<b>总加量表，通常 5 点或 7 点评定（非常不同意→非常同意）</b>；各题得分相加即为总分，测<b>态度</b>。要求<b>题目围绕同一态度对象、正反向题混合以防止定势</b>。|测量::M4::测验
+<b>#393 ★★ 自陈量表与投射测验相比，优劣各是什么？</b>|自陈量表：<b>施测简便、信效度较高、可团体施测</b>，但<b>易受社会赞许性与作假影响、表面效度高</b>；投射测验相反：<b>较难作假</b>但<b>信效度低、施测与解释成本高</b>。|测量::M4::测验
+<b>#394 ★★ 心理测验的使用应遵循哪些伦理原则？</b>|<b>①使用者须具备资格与培训；②对测验内容与题目保密；③知情同意；④结果保密，只向相关人员报告；⑤结合多源信息解释，不滥用分数、不标签化；⑥注意文化公平性</b>。|测量::M4::测验
+<b>#T23 ★★★ 平均数、中数、众数各适用什么情况？</b>|<b>平均数</b>：等距或比例数据，利用全部信息、最稳定，但<b>受极端值影响大</b>。<b>中数</b>：顺序数据、有极端值或开口资料，<b>稳健</b>但只用位置信息。<b>众数</b>：命名数据，可多个，<b>不稳定、受分组方式影响</b>。<br><u>易错：不能一律"用平均数"，要看数据类型与分布形态。</u>|统计::S1::描述统计
+<b>#T24 ★★★ 正偏与负偏时，平均数、中数、众数的大小关系是什么？原因？</b>|<b>正偏（右偏、长尾在右）：M＞Md＞Mo</b>；<b>负偏（左偏、长尾在左）：M＜Md＜Mo</b>。原因：平均数被极端值拉向长尾一侧，中数只由位置决定，众数落在人数最多的峰顶。<br><u>易错：方向看长尾不看峰。"M＞Md＞Mo"直接对应正偏。</u>|统计::S1::描述统计
+<b>#T25 ★★★ 为什么样本方差要除以 n−1 而不是 n？</b>|因为用样本均值 M 代替总体均值 μ 后，<b>Σ(X−M)² 系统性偏小</b>，除以 n 会低估总体方差。<b>除以 n−1（自由度）才是无偏估计</b>；样本越小偏差越明显。<br><u>易错：σ²＝SS/N 是总体方差，s²＝SS/(n−1) 是样本方差，不可混用。</u>|统计::S1::描述统计
+<b>#T26 ★★ 标准差与方差相比，报告数据时为什么更常用标准差？</b>|<b>标准差与原数据同单位</b>，可直接解释为"平均偏离均值多少"；方差单位是原单位的平方，不便解释。<b>但方差具有可加性（SS 可分解）</b>，故推断统计的公式里用方差。<br><u>易错：不是"标准差更准"，而是一个便于解释、一个便于运算。</u>|统计::S1::描述统计
+<b>#T27 ★★ 差异系数的公式与适用条件？</b>|<b>CV＝σ／M×100%</b>。只在<b>两组单位不同</b>（如体重与身高）或<b>均值水平相差很大</b>（如成人组与儿童组）时，用来比较相对离散程度。<br><u>易错：单位相同、均值接近时直接比标准差即可；滥用 CV 反而丢信息。</u>|统计::S1::描述统计
+<b>#T28 ★★★ z 分数有哪些性质？</b>|<b>z＝(X−M)／SD；均值恒为 0、标准差恒为 1</b>；可正可负，表示距均值几个标准差；属等距量表。<b>线性变换不改变分布形状</b>。<br><u>易错：标准化只改变均值与标准差，不改变偏度与峰度；z 分数不等于"正态化"。</u>|统计::S1::描述统计
+<b>#T29 ★★ T 分数的含义与用途？</b>|<b>T＝10z＋50，均值 50、标准差 10</b>。作用是<b>消除 z 的负号与小数</b>，便于报告与比较（MMPI、EPQ 等常用）。<br><u>易错：T 仍是等距量表，不能做比值解释——T=60 不代表是 T=30 的两倍。</u>|统计::S1::描述统计
+<b>#T30 ★★★ 百分等级（PR）与百分位数有什么区别？</b>|<b>百分等级是"名次"</b>：低于某分数者占总人数的百分比；<b>百分位数是"分数"</b>：对应某累计百分比的原始分数。二者<b>互为反函数</b>。<br><u>易错：问"排名第几"是 PR，问"分数是多少"是百分位数。</u>|统计::S1::描述统计
+<b>#T31 ★★★ 积差相关（皮尔逊）的适用条件？</b>|<b>两变量均为等距或比例数据；呈线性关系；成对数据且样本较大（一般 n≥30）</b>。公式 <b>r＝Sxy／√(Sxx·Syy)</b>，|r|≤1。<br><u>易错：等级数据不能用；r 只测线性关系，强曲线关系时 r 可能接近 0。</u>|统计::S1::描述统计
+<b>#T32 ★★ 斯皮尔曼等级相关的适用条件与公式？</b>|<b>两变量都是等级（顺序）数据，或原始数据不满足积差相关条件</b>；本质是对<b>秩次</b>求积差相关。公式 <b>r<sub>s</sub>＝1−6ΣD²／[n(n²−1)]</b>（D 为秩次差）。<br><u>易错：出现相同等级（结）时须用校正公式。</u>|统计::S1::描述统计
+<b>#T33 ★ 点二列相关的适用条件？</b>|<b>一个变量是真正的二分变量（如男／女），另一个是连续变量</b>。常用于<b>项目分析</b>（答对／答错与总分的相关）。<br><u>易错：若二分变量本质是连续变量被人为二分（如及格／不及格），应用二列相关。</u>|统计::S1::描述统计
+<b>#T34 ★★★ 相关系数 r 的正确解读是哪三条？</b>|<b>① r 只表示线性关系的强度与方向，|r|≤1；② r² 才是解释率（y 的变异中被 x 解释的比例）；③ 相关不等于因果</b>，可能是第三变量或反向因果，要确立因果须做实验。<br><u>易错：r＝0 不代表"无关"，只代表"无线性关系"；r 高也不代表预测准。</u>|统计::S1::描述统计
+<b>#T35 ★★★ 什么是标准误？公式是什么？</b>|<b>样本统计量（通常是均值）的抽样分布的标准差</b>，反映"样本均值有多不稳定"。均值标准误 <b>SE＝σ／√n</b>，σ 未知时用 s 代替。<br><u>易错：SE 不是某个样本的标准差，而是多次抽样所得均值的离散程度。</u>|统计::S2::抽样分布
+<b>#T36 ★★★ 标准误与标准差有什么区别？</b>|<b>标准差 s 描述"个体之间的分散"</b>，随样本本身波动；<b>标准误 SE 描述"样本均值的抽样波动"</b>，<b>随 n 增大而减小</b>。关系：<b>SE＝s／√n</b>。<br><u>易错：最高频的概念混淆——看到"均值的不确定性"就是 SE。</u>|统计::S2::抽样分布
+<b>#T37 ★★★ 中心极限定理的内容与意义？</b>|从任意分布的总体中抽取容量 n 的样本，<b>当 n 足够大（经验值 n≥30）时，样本均值的抽样分布近似正态</b>，其<b>均值＝μ、标准差＝σ／√n</b>。这是 z、t、F 检验成立的根本依据。<br><u>易错：它说的是"均值的分布"趋于正态，不是原始数据变正态。</u>|统计::S2::抽样分布
+<b>#T38 ★★★ 总体分布、样本分布、抽样分布三者有什么区别？</b>|<b>总体分布</b>：总体中所有个体的分数分布；<b>样本分布</b>：一次抽样所得 n 个分数的分布；<b>抽样分布</b>：反复抽样所得<b>统计量</b>（如均值）的分布。推断统计研究的是第三种。<br><u>易错：只有抽样分布的标准差才叫标准误；样本分布的标准差是 s。</u>|统计::S2::抽样分布
+<b>#T39 ★★ 自由度是什么？估计均值后为什么是 n−1？</b>|<b>能自由变化的观测个数</b>。因为 <b>Σ(X−M)＝0</b> 这一约束，n 个离均差中只有 n−1 个可自由取值，最后一个被决定，故 df＝n−1。<br><u>易错：df 是"可用信息量"不是样本量；独立样本 t 的 df 是 n₁＋n₂−2。</u>|统计::S2::抽样分布
+<b>#T40 ★★ ±1σ、±1.96σ、±2.58σ 各包含多少面积？</b>|<b>±1σ≈68.26%；±1.96σ≈95%；±2.58σ≈99%</b>。单侧对应：z＝1.645 以上 5%、z＝1.96 以上 2.5%、z＝2.58 以上 0.5%。<br><u>易错：双侧 5% 用 1.96、单侧 5% 用 1.645，两者不可混。</u>|统计::S2::抽样分布
+<b>#T41 ★★ 样本量增大时标准误如何变化？为什么"投入产出比"很差？</b>|<b>SE＝σ／√n，n 增大 4 倍，SE 才减半</b>。<b>靠加样本缩小误差，收益递减</b>；SE 减半的代价是样本量成四倍增长。<br><u>易错：不是"样本越大越好"；n 过大时微小差异也会显著，须同时看效应量。</u>|统计::S2::抽样分布
+<b>#T42 ★★ t 分布与正态分布有什么区别？</b>|t 分布是<b>用样本标准差 s 代替 σ 后的抽样分布</b>，是<b>由 df 决定形状的一族曲线</b>；<b>df 越小，尾部越厚、临界值越大</b>；<b>df→∞ 时趋近正态</b>。<br><u>易错：t 分布同样对称单峰、均值 0；差别在尾部厚度，不在对称性。</u>|统计::S2::抽样分布
+<b>#T43 ★★★ 为什么 σ 未知时要用 t 分布而不是 z 分布？</b>|因为用 <b>s 估计 σ 会引入额外不确定性</b>，使统计量分布尾部变厚、极端值更易出现。<b>t 分布把这种"估计误差"计入临界值</b>，故 σ 未知时必须用 t。<br><u>易错：判断依据是"σ 是否已知"，不是"n 是否大于 30"。</u>|统计::S2::抽样分布
+<b>#T44 ★ 正态分布有哪些特点？</b>|<b>单峰、对称（偏度 0）、钟形；M＝Md＝Mo；曲线下总面积＝1；由 μ 与 σ 完全决定</b>；拐点在均值 ±1σ 处。<br><u>易错：不是"任何心理数据都该符合正态"——反应时明显右偏。</u>|统计::S2::抽样分布
+<b>#T45 ★ 概率的加法法则与乘法法则各适用什么情况？</b>|<b>加法法则：两个互斥事件</b>，P(A 或 B)＝P(A)＋P(B)；<b>乘法法则：两个独立事件</b>，P(A 且 B)＝P(A)×P(B)。<br><u>易错：互斥与独立是两个不同概念——互斥指不能同时发生，独立指互不影响概率。</u>|统计::S2::抽样分布
+<b>#T46 ★ 常用抽样方法有哪些？建常模时哪种最重要？</b>|<b>简单随机抽样、系统（等距）抽样、分层随机抽样、整群（聚类）抽样</b>。建常模最重要的是<b>分层随机抽样</b>，以保证样本对总体的代表性。<br><u>易错：方便抽样（找身边同学）不属于概率抽样，不能用于建常模。</u>|统计::S2::抽样分布
+<b>#T47 ★★ 概率的古典定义与统计定义有什么不同？</b>|<b>古典定义</b>：基于"各结果等可能"的先验计算；<b>统计（频率）定义</b>：大量重复试验中事件发生频率的稳定值。心理学研究多用后者。<br><u>易错：古典定义要求等可能，现实研究常不满足，只能用频率近似。</u>|统计::S2::抽样分布
+<b>#T48 ★★★ 为什么说抽样分布是统计推断的基础？</b>|因为推断的对象是<b>"样本统计量相对于总体参数会如何波动"</b>。有了抽样分布才能算某个样本结果出现的概率，进而做区间估计与假设检验——<b>z＝(M−μ)／SE 正是把样本结果放到抽样分布上定位</b>。<br><u>易错：推断不是"用样本代替总体"，而是"用抽样分布的规律反推总体"。</u>|统计::S2::抽样分布
+<b>#T49 ★★★ 点估计的三个评价标准是什么？</b>|<b>无偏性</b>（估计量的期望等于真值，故样本方差除 n−1）·<b>有效性</b>（无偏前提下方差越小越有效）·<b>一致性</b>（n→∞ 时趋近真值）。<br><u>易错：有效性的比较必须在无偏的前提内进行。</u>|统计::S3::假设检验
+<b>#T50 ★★★ "95% 置信区间"的正确解释是什么？</b>|<b>反复抽样所构造的许多 95% 置信区间中，约有 95% 会包含总体参数</b>。<br><u>易错：不能说"总体参数有 95% 概率落在这个区间内"——参数固定，随机的是区间。</u>|统计::S3::假设检验
+<b>#T51 ★★★ 假设检验的五个步骤是什么？</b>|<b>①提出 H₀ 与 H₁；②选定检验统计量与显著性水平 α；③确定临界值与拒绝域；④计算统计量实际值；⑤与临界值比较，作出"拒绝／不拒绝 H₀"的结论</b>。<br><u>易错：漏写"临界值"那一步最常扣分；结论要连着统计量写，如 t(18)=2.50, p＜.05。</u>|统计::S3::假设检验
+<b>#T52 ★★★ 为什么不能说"接受 H₀"？</b>|检验的逻辑是<b>反证法</b>：只能<b>"拒绝 H₀"或"不拒绝 H₀"</b>。不拒绝只说明"证据不足"，不等于"证明 H₀ 为真"。<br><u>易错：规范表述是"无充分证据表明……"或"不拒绝 H₀"。</u>|统计::S3::假设检验
+<b>#T53 ★★★ 第一类错误与第二类错误分别是什么？</b>|<b>α（弃真）：H₀ 为真却拒绝</b>；<b>β（取伪）：H₀ 为假却保留</b>。<br><u>易错：α 对应"冤枉好人"，β 对应"放过坏人"；α 事先设定，β 由效应量、n、α 共同决定。</u>|统计::S3::假设检验
+<b>#T54 ★★★ α 与 β 是什么关系？能同时减小吗？</b>|<b>n 固定时，α 减小则 β 增大，二者此消彼长</b>。<b>要同时减小 α 与 β，只能增大样本量或增大效应量（减小误差变异）</b>。<br><u>易错：简答必须写出"n 固定"这一前提，不能只答"不能同时减小"。</u>|统计::S3::假设检验
+<b>#T55 ★★★ 什么是统计效力？受哪些因素影响？</b>|<b>效力＝1−β</b>，即 H₀ 为假时能正确检出的概率，常规要求 <b>≥0.80</b>。影响因素：<b>效应量↑、样本量↑、α↑、单侧检验、误差变异↓ → 效力↑</b>。<br><u>易错：效力高只说明"更可能发现真实效应"，不代表结论必然正确。</u>|统计::S3::假设检验
+<b>#T56 ★★★ 什么时候用单侧检验、什么时候用双侧？</b>|<b>有明确方向性预期时用单侧；只关心"是否有差异"而无方向时用双侧</b>。必须依据理论与假设<b>事先决定</b>。<br><u>易错：单侧临界值更小（1.645 vs 1.96），看完数据再改单侧＝人为放大 I 类错误。</u>|统计::S3::假设检验
+<b>#T57 ★★★ p 值的准确含义是什么？</b>|<b>在 H₀ 为真的前提下，得到当前观测结果或更极端结果的概率</b>。p＜α 时拒绝 H₀。<br><u>易错：p 不是"H₀ 为真的概率"，也不是"结论错误的概率"，更不是效应大小。</u>|统计::S3::假设检验
+<b>#T58 ★★★ 为什么 p＜.05 不等于"效应大、结论重要"？</b>|因为 <b>p 同时受效应量与样本量影响</b>：样本很大时微小差异也能显著，样本很小时大效应也可能不显著。<b>故必须同时报告效应量（d、η²、r²）</b>。<br><u>易错：显著＝"不太可能是偶然"，重要＝"效应足够大"，是两个问题。</u>|统计::S3::假设检验
+<b>#T59 ★★ 效应量 d 的含义与判断标准？</b>|<b>d＝(M−μ)／σ（或除以合并标准差 s<sub>p</sub>）</b>，表示相差几个标准差。惯例：<b>0.2 小、0.5 中、0.8 大</b>。<br><u>易错：d 不随样本量变化，而 t、z、p 都随 n 变化——这正是"显著性≠效应量"的根源。</u>|统计::S3::假设检验
+<b>#T60 ★★★ 置信区间与假设检验是什么关系？</b>|<b>双尾 α＝.05 时，95% 置信区间不包含 H₀ 指定值 ⇔ 拒绝 H₀</b>。两者信息等价，但<b>置信区间还给出效应大小的范围</b>，信息更丰富。<br><u>易错：小样本用 t 临界值时，CI 也要用 t 而非 1.96，否则与检验结论不一致。</u>|统计::S3::假设检验
+<b>#T61 ★★ 哪些因素会使置信区间变宽？</b>|<b>置信度提高（95%→99%）、样本量减小、标准差增大</b>都会使区间变宽；反之变窄。<br><u>易错：题目常问"哪个不会使区间变宽"——增大样本量是使其变窄的因素。</u>|统计::S3::假设检验
+<b>#T62 ★★ 显著性水平 α 由谁决定？它和数据什么关系？</b>|<b>α 由研究者在收集数据之前设定</b>（惯例 .05 或 .01），<b>不由数据决定</b>。数据只决定 p 值与统计量实际值。<br><u>易错：结果不显著就把 α 从 .05 改成 .10，属事后操纵。</u>|统计::S3::假设检验
+<b>#T63 ★★ 怎样快速判断情境属于 I 类还是 II 类错误？</b>|先看<b>真实情况</b>（H₀ 真／假），再看<b>研究结论</b>（拒绝／不拒绝）。<b>H₀ 真而拒绝＝I 类（α）；H₀ 假而不拒绝＝II 类（β）</b>。<br><u>易错：另两种组合（H₀ 真不拒绝、H₀ 假拒绝）都是正确决策。</u>|统计::S3::假设检验
+<b>#T64 ★★ 统计效力不足会带来什么后果？</b>|<b>真实存在的效应很可能被漏掉（II 类错误增多）</b>；已发表研究中效力低还会导致<b>效应量被高估</b>（只有显著结果被发表）。<br><u>易错：效力不足不会制造假阳性，只会漏掉真阳性；假阳性主要与 α、多重比较有关。</u>|统计::S3::假设检验
+<b>#T65 ★★ 点估计与区间估计有什么区别？</b>|<b>点估计给出一个具体估计值</b>（如 M＝54），未说明精确程度；<b>区间估计给出一个范围并附置信度</b>，同时反映<b>精确性</b>（区间越窄越精确）。<br><u>易错：区间宽不等于"估计得准"，恰恰相反——越宽说明越不确定。</u>|统计::S3::假设检验
+<b>#T66 ★★★ 为什么多次两两比较会抬高 I 类错误率？怎么处理？</b>|k 组两两比较共 <b>k(k−1)／2 次</b>，每次都用 α＝.05 时<b>族系错误率迅速膨胀</b>（4 组 6 次约 1−0.95⁶≈26%）。处理：<b>先用总体 F 检验控制 α，再用校正过的事后检验（N-K、Tukey HSD）</b>。<br><u>易错：这不是"多做几次更可靠"，而是错误率累积问题。</u>|统计::S3::假设检验
+<b>#T67 ★★★ 单样本 t、独立样本 t、配对样本 t 各在什么情况下使用？</b>|<b>单样本 t</b>：一个样本均值与已知总体均值比较；<b>独立样本 t</b>：两组互不相关的被试比较；<b>配对样本 t</b>：同一批被试的两次测量（或配对组）比较。<br><u>易错：同一批被试前后测必须用配对 t，用独立样本 t 会浪费效力并算错 df。</u>|统计::S4::t检验
+<b>#T68 ★★★ 独立样本 t 检验的自由度是多少？为什么？</b>|<b>df＝n₁＋n₂−2</b>。因为两组各自用样本均值估计后各损失一个自由度（<b>估计了两个均值</b>），故 (n₁−1)＋(n₂−1)。<br><u>易错：写成 n₁＋n₂−1 或 n−1 是高频错误；方差不齐用 Welch 校正时 df 会变小数。</u>|统计::S4::t检验
+<b>#T69 ★★★ 配对样本 t 检验的自由度是多少？</b>|<b>df＝对数−1</b>（8 对则 df＝7）。因为配对 t 本质是<b>对差值 D 做单样本 t 检验</b>，只有一组差值。<br><u>易错：不能按"总人数−2"算；个体差异已被消掉。</u>|统计::S4::t检验
+<b>#T70 ★★★ 独立样本 t 中的合并方差是什么？怎么算？</b>|<b>s<sub>p</sub>²＝(SS₁＋SS₂)／(df₁＋df₂)</b>，即两组方差的<b>加权平均</b>（大样本组权重大）。再算 <b>SE<sub>diff</sub>＝√[s<sub>p</sub>²(1/n₁＋1/n₂)]</b>。<br><u>易错：不是把两个标准差直接平均；合并的前提是方差齐性。</u>|统计::S4::t检验
+<b>#T71 ★★★ 独立样本 t 检验的三个前提是什么？</b>|<b>①独立性（两组被试互不相关）②正态性（各总体服从正态分布）③方差齐性（两总体方差相等）</b>。<br><u>易错：配对／重复测量设计不要求"独立"（数据本身相关），但要求差值的正态性。</u>|统计::S4::t检验
+<b>#T72 ★★ 方差不齐时该怎么办？</b>|<b>两组样本量相等或接近时，t 检验对方差不齐较稳健，可继续使用</b>；<b>样本量悬殊且方差不齐时，改用 Welch 校正（df 取小数）</b>；也可对数据做转换。<br><u>易错：答题写一句"若方差不齐需用 Welch 校正"通常是加分点。</u>|统计::S4::t检验
+<b>#T73 ★★★ t 检验与方差分析是什么关系？</b>|<b>两组比较时二者等价：t²＝F</b>。独立样本 t 的平方＝单因素完全随机 ANOVA 的 F；<b>配对 t 的平方＝单因素重复测量 ANOVA 的 F</b>。t 检验是 F 检验在两水平时的特例。<br><u>易错：关系是"平方"不是"相等"；t 可为负，F 恒为正。</u>|统计::S4::t检验
+<b>#T74 ★★★ 为什么 t 值大不代表效应大？</b>|因为 <b>t＝(M₁−M₂)／SE<sub>diff</sub>，而 SE 随样本量增大而减小</b>。样本足够大时很小的均值差也能得到大 t 值。<b>d＝(M₁−M₂)／s<sub>p</sub> 不随 n 变化</b>，才是效应大小指标。<br><u>易错：报告须同时给 t、df、p、d（或 CI），只给 t 无法判断实际意义。</u>|统计::S4::t检验
+<b>#T75 ★★ 单样本 t 检验与 z 检验有什么区别？</b>|<b>σ 已知用 z，σ 未知用 t</b>（用 s 估计 σ）。因此 t 分布尾部更厚、临界值更大；n 很大时两者近似。<br><u>易错：判断依据是"σ 是否已知"，不是"n 是否大于 30"。</u>|统计::S4::t检验
+<b>#T76 ★★★ 配对（重复测量）设计在统计上的主要优点是什么？</b>|<b>个体差异被从误差项中剔除</b>，误差变小 → <b>统计效力更高、所需样本更少</b>；同时控制了与个体有关的额外变量。<br><u>易错：代价是引入顺序与练习效应，必须用 ABBA／拉丁方平衡。</u>|统计::S4::t检验
+<b>#T77 ★★★ 同一批被试前后测若错用独立样本 t，会有什么后果？</b>|<b>把本可剔除的个体差异算进误差，SE 被夸大 → t 值偏小、效力下降</b>；且 <b>df 也算错</b>（应为对数−1）。可能把真实存在的效应判为不显著。<br><u>易错：这是"统计方法与设计不匹配"的典型扣分点。</u>|统计::S4::t检验
+<b>#T78 ★★ 独立样本 t 与配对 t 的选择依据是什么？</b>|看<b>两组数据是否来自同一批被试（或配对的个体）</b>：同批／配对→配对 t；两组独立被试→独立样本 t。<br><u>易错："人数相同"不是判断依据，"是否相关"才是。</u>|统计::S4::t检验
+<b>#T79 ★★ 效应量 d 与 t 值、r² 之间如何换算？</b>|<b>r²＝t²／(t²＋df)</b>，可把 t 检验结果转换为解释率；两组等样本量时 <b>d＝2t／√df</b>。两者都不受 n 单独放大。<br><u>易错：r² 与 d 的数值不能直接互比大小，各有惯例标准。</u>|统计::S4::t检验
+<b>#T80 ★★ 完整的 t 检验报告格式是什么？</b>|<b>t(df)＝数值，p＜.05（或具体 p），d＝数值，95% CI＝[下限, 上限]</b>，并写一句结论（拒绝／不拒绝 H₀，方向如何）。<br><u>易错：df 必须紧跟 t 值写在括号里；只写"p＜.05 显著"而漏掉 df 与效应量，属格式分丢失。</u>|统计::S4::t检验
+<b>#T81 ★★★ 回归系数 b 的含义是什么？</b>|<b>x 每增加 1 个单位，y 平均变化 b 个单位</b>。公式 <b>b＝Sxy／Sxx</b>，<b>b 带单位</b>（y 的单位／x 的单位）。<br><u>易错：b 不能跨变量直接比大小；要比较相对作用须用标准化回归系数。</u>|统计::S6::回归卡方非参数
+<b>#T82 ★★★ r 与 b 是什么关系？</b>|<b>b＝r·(S<sub>y</sub>／S<sub>x</sub>)</b>。r 是<b>无单位的标准化斜率</b>，b 是<b>有单位的原始斜率</b>；|r|≤1，b 可大于 1 或为负。<br><u>易错：二者符号相同，但大小不能互相替代；相关对称、回归不对称。</u>|统计::S6::回归卡方非参数
+<b>#T83 ★★★ 决定系数 r² 的含义是什么？</b>|<b>y 的变异中被 x 解释的比例</b>（r²＝SS<sub>回归</sub>／SS<sub>总</sub>）。如 r＝0.50 时 r²＝0.25，即解释 25%。<br><u>易错：不能说"x 决定 y 的 25%"，只能说"解释／预测"；r² 高也不代表因果成立。</u>|统计::S6::回归卡方非参数
+<b>#T84 ★★★ 相关分析与回归分析有什么区别？</b>|<b>相关是对称的</b>：x 与 y 地位对等，只描述共变强度；<b>回归是不对称的</b>：区分自变量与因变量，可<b>由一个变量预测另一个</b>。<br><u>易错："相关高"不等于"回归预测准"；方向反转时斜率不同。</u>|统计::S6::回归卡方非参数
+<b>#T85 ★★ 回归方程的显著性检验怎么做？</b>|可用 <b>F 检验（df＝1, n−2）</b>检验回归是否显著，或对<b>回归系数 b 做 t 检验（df＝n−2）</b>，<b>二者等价：t²＝F</b>。<br><u>易错：F 显著只说明有线性预测作用，不代表预测精度高（还要看 r²）。</u>|统计::S6::回归卡方非参数
+<b>#T86 ★★★ χ² 检验的基本公式？期望次数怎么算？</b>|<b>χ²＝Σ(O−E)²／E</b>；独立性检验中 <b>E＝(行合计×列合计)／N</b>。χ² 反映实际次数与理论次数的偏离程度。<br><u>易错：期望次数的分母是 N（总人数），不是格子数；除的是 E 不是 O。</u>|统计::S6::回归卡方非参数
+<b>#T87 ★★★ χ² 检验的自由度怎么定？</b>|<b>拟合优度：df＝k−1</b>（k 为类别数）；<b>独立性：df＝(r−1)(c−1)</b>。2×2 表 df＝1。<br><u>易错：独立性检验不能用"行数×列数−1"，必须各减 1 后相乘。</u>|统计::S6::回归卡方非参数
+<b>#T88 ★★ χ² 检验是单尾还是双尾？为什么？</b>|<b>单尾（拒绝域只在右端）</b>。因为 χ² 只反映偏离的大小（平方和），<b>恒为正值，不存在"负方向的偏离"</b>。<br><u>易错：关联方向（哪一格实际次数偏多）要看实际比例，χ² 本身不指示方向。</u>|统计::S6::回归卡方非参数
+<b>#T89 ★★ χ² 检验中期望次数过小怎么办？</b>|当<b>某格 E＜5</b>时 χ² 近似不再可靠。处理：<b>合并相邻类别、增大样本量，或改用 Fisher 精确检验</b>。<br><u>易错：合并类别会改变 df，须一并说明；不能为"通过检验"随意合并。</u>|统计::S6::回归卡方非参数
+<b>#T90 ★★★ 什么情况下应使用非参数检验？</b>|<b>①数据为等级（顺序）变量；②总体分布严重偏态或未知；③样本量极小；④存在无法剔除的极端值；⑤方差不齐且无法校正</b>。<br><u>易错：非参数检验不是"更高级"的方法，它是参数检验前提不满足时的替代方案。</u>|统计::S6::回归卡方非参数
+<b>#T91 ★★★ 常用非参数检验分别对应哪种参数检验？</b>|配对：<b>符号检验（最粗糙）＜Wilcoxon 符号秩</b> ↔ 配对 t；两独立：<b>Mann-Whitney U</b> ↔ 独立样本 t；多独立：<b>Kruskal-Wallis H</b> ↔ 单因素 ANOVA；多相关：<b>Friedman</b> ↔ 重复测量 ANOVA。<br><u>易错：符号检验只用差值正负、丢掉大小信息，效力最低；两者不能混用。</u>|统计::S6::回归卡方非参数
+<b>#T92 ★★★ 参数检验与非参数检验在效力上有什么区别？</b>|<b>满足参数检验前提时，参数检验效力更高</b>（利用了均值与方差的信息）；<b>非参数只用秩次或符号，信息损失导致效力较低</b>（通常需多 5%–15% 样本才能达到同等效力）。<br><u>易错：等级数据硬用参数检验会违反前提；但连续正态数据改用非参数是白白损失效力。</u>|统计::S6::回归卡方非参数
+`;
+
+/* ==========================================================================
+   ② 以下是引擎，正常情况下不用改
+   ========================================================================== */
+
+const D = id => document.getElementById(id);
+const DAY = 86400000;
+const KEY = APP.key, CRAM_KEY = APP.cramKey;
+
+const now = () => Date.now();
+const pad = n => String(n).padStart(2,'0');
+function todayKey(t){ t = t || now(); const d = new Date(t);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function endOfToday(t){ t = t || now(); const d = new Date(t);
+  return new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999).getTime(); }
+const uid = () => 'c'+now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+function mmss(sec){ sec = Math.max(0, Math.floor(sec||0));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return h ? h+':'+pad(m)+':'+pad(s) : m+':'+pad(s); }
+
+/* 反转义（最多四层） */
+function unesc(s){
+  s = String(s||'');
+  for (let i=0;i<4;i++){
+    const t = s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+               .replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/&amp;/g,'&');
+    if (t === s) break;
+    s = t;
+  }
+  return s;
+}
+/* 清洗行内 HTML：只保留 b/i/u/br */
+function cleanInline(html){
+  const src = unesc(html); let out = '';
+  const re = /<\/?([a-zA-Z]+)[^>]*>|([^<]+)/g;
+  const allow = {b:1,strong:1,i:1,em:1,u:1,sub:1,sup:1}; let m;
+  while ((m = re.exec(src))){
+    if (m[2] !== undefined){ out += esc(m[2]); continue; }
+    const tag = m[1].toLowerCase(), closing = m[0][1] === '/';
+    if (tag === 'br'){ if (!closing) out += '<br>'; continue; }
+    if (!allow[tag]) continue;
+    const t = tag === 'strong' ? 'b' : tag === 'em' ? 'i' : tag;
+    out += closing ? '</'+t+'>' : '<'+t+'>';
+  }
+  return out.replace(/<b>\s+/g,'<b>').replace(/\s+<\/b>/g,'</b>').replace(/(<br>\s*)+$/,'').trim();
+}
+/* 取纯文本 */
+function plain(h){
+  let s = String(h||'');
+  for (let i=0;i<4;i++){
+    const t = unesc(s.replace(/<[^>]*>/g,''));
+    if (t === s) break;
+    s = t;
+  }
+  return s.trim();
+}
+/* 判重用的归一化键：只留中英文数字 */
+function key(h){
+  return plain(h).replace(/\s+/g,'').replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g,'').toLowerCase();
+}
+function extractStar(q){
+  const m = String(q).match(/★+/);
+  return { star: m ? Math.min(3, m[0].length) : 0, q: String(q).replace(/★+/g,'') };
+}
+function extractCode(q){
+  const m = String(q).match(/^\s*#\s*([A-Za-z0-9\-]{1,12})\s*/);
+  return m ? { code: m[1], q: String(q).slice(m[0].length) } : { code:'', q:String(q) };
+}
+
+/* 索引推断 */
+function guessIndex(q, a, tags){
+  const ts = (tags||[]).join('/');
+  const qT = plain(q);
+  let subj = '';
+  for (const r of SUBJECT_RULES) if (r[0].test(ts)){ subj = r[1]; break; }
+  if (!subj) for (const r of SUBJECT_RULES) if (r[0].test(qT)){ subj = r[1]; break; }
+  if (!subj) subj = DEFAULT_SUBJECT;
+  let type = TYPES[TYPES.length-1];
+  for (const r of TYPE_RULES) if (r[1].test(qT)){ type = r[0]; break; }
+  return [TOP, subj, type];
+}
+
+/* 章节索引：有标签时用最后一个标签作第三层 */
+function chapterIndex(q, a, tags){
+  const g = guessIndex(q, a, tags);
+  if (Array.isArray(tags) && tags.length) g[2] = tags[tags.length-1];
+  return g;
+}
+
+/* 标签配色：按名字自动分配，无需配置 */
+const PALETTE = [
+  ['#EFEBFB','#6A55BE'],['#E4F1FA','#1E7EAE'],['#FCE9F1','#B84A7E'],['#FDF1DC','#B47A1B'],
+  ['#E7F0FB','#2E6BA8'],['#EAF6EE','#3E8A5B'],['#E6F4F6','#1B7A8C'],['#E2F1ED','#2A7A66'],
+  ['#E9F3E3','#4A7A36'],['#E0EFF2','#1E6B78'],['#FBE7E3','#AC3B24'],['#EEEAF9','#574AA0'],
+  ['#F8F1DE','#8A6420'],['#FDEDEC','#B85450']
+];
+function lastTag(c){
+  return (c.tags && c.tags.length) ? c.tags[c.tags.length-1] : '';
+}
+function tagHash(t){
+  let h = 0; const s = String(t||'');
+  for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+  return h % PALETTE.length;
+}
+function tagColor(t){ return PALETTE[tagHash(t)][1]; }
+function tagStyle(t){ const p = PALETTE[tagHash(t)]; return 'background:'+p[0]+';color:'+p[1]; }
+const STAR_STYLE = { 3:'background:#FDECE9;color:#B3261E',
+                     2:'background:#FDF2DF;color:#A9620C',
+                     1:'background:#E8EFF7;color:#2C5A87' };
+
+/* 状态 */
+let state = { cards:[], seeded:false, seedVer:0, idxVer:0, codeVer:0,
+  settings:{ dailyNew:100, mode:'srs' },
+  today:{ date:todayKey(), newCount:0, reviewed:0, seconds:0 } };
+
+function ensureToday(){
+  const k = todayKey();
+  if (!state.today || state.today.date !== k)
+    state.today = { date:k, newCount:0, reviewed:0, seconds:0 };
+  if (!Number.isFinite(state.today.seconds)) state.today.seconds = 0;
+}
+function sanitizeCard(o){
+  if (!o || typeof o.q !== 'string' || typeof o.a !== 'string') return null;
+  const q = cleanInline(String(o.q).slice(0,LIM_Q));
+  const a = cleanInline(String(o.a).slice(0,LIM_A));
+  if (!plain(q) || !plain(a)) return null;
+  let idx = null;
+  if (Array.isArray(o.idx) && o.idx.length === 3) idx = o.idx.map(x => String(x).slice(0,20));
+  return {
+    id: (typeof o.id === 'string' && o.id) ? o.id : uid(),
+    q:q, a:a, tip: cleanInline(String(o.tip||'').slice(0,LIM_T)),
+    code: typeof o.code === 'string' ? o.code.slice(0,12) : '',
+    refs: Array.isArray(o.refs) ? o.refs.slice(0,6).map(x => String(x).slice(0,12)) : [],
+    tags: Array.isArray(o.tags) ? o.tags.slice(0,8).map(x => String(x).slice(0,24)) : [],
+    star: Number.isInteger(o.star) ? clamp(o.star,0,3) : 0,
+    mark: !!o.mark,
+    idx: idx, idxAuto: !!o.idxAuto,
+    stage: Number.isInteger(o.stage) ? clamp(o.stage,0,STAGE_MAX) : 0,
+    due: Number.isFinite(o.due) ? o.due : 0,
+    reps: Number.isFinite(o.reps) ? Math.max(0,Math.floor(o.reps)) : 0,
+    lapses: Number.isFinite(o.lapses) ? Math.max(0,Math.floor(o.lapses)) : 0,
+    created: Number.isFinite(o.created) ? o.created : now(),
+    lastAt: Number.isFinite(o.lastAt) ? o.lastAt : 0
+  };
+}
+function normalizeAll(){
+  let n = 0;
+  for (const c of state.cards){
+    const q = cleanInline(c.q), a = cleanInline(c.a), t = cleanInline(c.tip);
+    if (q !== c.q || a !== c.a || t !== c.tip){ c.q=q; c.a=a; c.tip=t; n++; }
+  }
+  return n;
+}
+
+/* 解析题库文本 */
+function parseSource(text, autoCode){
+  const out = [];
+  const lines = String(text).split(/\r?\n/);
+  let seq = 0;
+  for (let i = 0; i < lines.length; i++){
+    const line = lines[i].trim();
+    if (!line || /^(<br\s*\/?>|\/\/)$/i.test(line)) continue;
+    let qRaw, aRaw, meta = '';
+    if (line.indexOf('|') > -1){
+      const parts = line.split('|');
+      if (parts.length >= 3 && /::/.test(parts[parts.length-1])) meta = parts.pop();
+      qRaw = parts[0] || ''; aRaw = parts.slice(1).join('|');
+    } else if (line.indexOf('\t') > -1){
+      const parts = line.split('\t');
+      qRaw = parts[0]; aRaw = parts[1] || ''; if (parts[2]) meta = parts[2];
+    } else continue;
+
+    const st = extractStar(qRaw);
+    const aClean = cleanInline(aRaw);
+    const segs = aClean.split(/<br\s*\/?>/i);
+    const main = [], tip = [];
+    segs.forEach((s,k) => {
+      if (k > 0 && /^\s*(易错|注意|提示|误区|考点|辨析)/.test(plain(s))) tip.push(s);
+      else main.push(s);
+    });
+    const tags = meta ? meta.split('::').map(x => x.trim()).filter(Boolean) : [];
+    const cd = extractCode(plain(st.q));
+    let qNoCode = st.q;
+    if (cd.code){
+      const at = qNoCode.indexOf('#' + cd.code);
+      if (at > -1) qNoCode = qNoCode.slice(0, at) + qNoCode.slice(at + cd.code.length + 1);
+    }
+    let qc = cleanInline(qNoCode);
+    seq++;
+    const aa = main.join('<br>');
+    const c = sanitizeCard({
+      q: qc, a: aa, tip: tip.join('<br>'), tags: tags, star: st.star,
+      code: autoCode ? ('T'+String(seq).padStart(3,'0')) : cd.code,
+      idx: chapterIndex(qc, aa, tags), idxAuto: true
+    });
+    if (c) out.push(c);
+  }
+  return { cards: out };
+}
+
+let seedCache = null;
+function seedParsed(){
+  if (seedCache) return seedCache;
+  seedCache = parseSource(SEED_SOURCE, false);
+  return seedCache;
+}
+
+/* 存储 */
+let saveTimer = null, saveDirty = false;
+function save(){ saveDirty = true; if (!saveTimer) saveTimer = setTimeout(flushSave, 400); }
+function flushSave(){
+  clearTimeout(saveTimer); saveTimer = null;
+  if (!saveDirty) return;
+  saveDirty = false;
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ v:1, cards:state.cards, seeded:state.seeded,
+      seedVer:state.seedVer, idxVer:state.idxVer, codeVer:state.codeVer,
+      settings:state.settings, today:state.today }));
+  } catch(e){ toast('保存失败：空间不足，请先导出备份'); }
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.cards)) return false;
+    const arr = [];
+    for (const it of o.cards){ const c = sanitizeCard(it); if (c) arr.push(c); }
+    if (!arr.length && !o.seeded) return false;
+    state.cards = arr;
+    state.seeded = !!o.seeded;
+    state.seedVer = Number(o.seedVer) || 0;
+    state.idxVer = Number(o.idxVer) || 0;
+    state.codeVer = Number(o.codeVer) || 0;
+    const st = o.settings || {};
+    state.settings = { dailyNew: clamp(Number(st.dailyNew) || 100, 0, 1000),
+      mode: st.mode === 'cram' ? 'cram' : 'srs' };
+    if (o.today && o.today.date === todayKey()){
+      state.today = { date:o.today.date, newCount:Number(o.today.newCount)||0,
+        reviewed:Number(o.today.reviewed)||0, seconds:Number(o.today.seconds)||0 };
+    }
+    return true;
+  } catch(e){ return false; }
+}
+function mergeSeed(){
+  const p = seedParsed();
+  const have = new Set(state.cards.map(c => key(c.q)));
+  let added = 0;
+  for (const c of p.cards){
+    const k = key(c.q);
+    if (!k || have.has(k)) continue;
+    if (state.cards.length >= MAX_CARDS) break;
+    state.cards.push(JSON.parse(JSON.stringify(c)));
+    have.add(k); added++;
+  }
+  state.seeded = true;
+  state.seedVer = APP.seedVer;
+  return added;
+}
+function applyIndexMigration(){
+  let n = 0;
+  for (const c of state.cards){
+    if (c.idxAuto === false) continue;
+    const g = chapterIndex(c.q, c.a, c.tags);
+    if (!c.idx || c.idx.join('|') !== g.join('|')){ c.idx = g; c.idxAuto = true; n++; }
+  }
+  state.idxVer = 1;
+  return n;
+}
+function reindexAuto(){
+  let n = 0;
+  for (const c of state.cards){
+    if (c.idxAuto === false) continue;
+    const g = chapterIndex(c.q, c.a, c.tags);
+    if (!c.idx || c.idx.join('|') !== g.join('|')){ c.idx = g; n++; }
+  }
+  return n;
+}
+
+/* 查重 */
+function findDupes(){
+  const m = new Map();
+  for (const c of state.cards){
+    const k = key(c.q);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(c);
+  }
+  const out = [];
+  m.forEach(arr => { if (arr.length > 1) out.push(arr); });
+  return out;
+}
+function dedupe(){
+  const groups = findDupes();
+  let removed = 0;
+  for (const g of groups){
+    g.sort((a,b) => (b.reps-a.reps) || (b.stage-a.stage) ||
+      ((b.mark?1:0)-(a.mark?1:0)) || (b.star-a.star));
+    const keep = g[0];
+    for (const c of g.slice(1)){
+      if (c.mark) keep.mark = true;
+      if (c.star > keep.star) keep.star = c.star;
+      if (!keep.code && c.code) keep.code = c.code;
+      keep.refs = Array.from(new Set((keep.refs||[]).concat(c.refs||[]))).slice(0,6);
+      const i = state.cards.indexOf(c);
+      if (i > -1){ state.cards.splice(i,1); removed++; }
+    }
+  }
+  return removed;
+}
+
+/* 计时 */
+let timerHandle = null;
+function startTimer(){
+  if (timerHandle) return;
+  timerHandle = setInterval(() => {
+    if (document.hidden || curTab !== 'review') return;
+    ensureToday();
+    state.today.seconds = (state.today.seconds || 0) + 1;
+    paintTime();
+    if (state.today.seconds % 20 === 0) save();
+  }, 1000);
+}
+function paintTime(){
+  ensureToday();
+  const t = mmss(state.today.seconds);
+  const mode = state.settings.mode === 'cram' ? '突击模式' : APP.sub;
+  if (D('hintSub')) D('hintSub').textContent = mode + ' · ' + state.cards.length + ' 张 · 今日 ' + t;
+  if (D('cramTime')) D('cramTime').textContent = t;
+}
+
+/* 计数与队列 */
+function counts(){
+  ensureToday();
+  const end = endOfToday();
+  let due = 0, fresh = 0;
+  for (const c of state.cards){
+    if (c.reps === 0) fresh++;
+    else if (c.due <= end) due++;
+  }
+  const quota = Math.max(0, state.settings.dailyNew - state.today.newCount);
+  return { due:due, fresh:fresh, quota:quota };
+}
+const markedCount = () => state.cards.filter(c => c.mark).length;
+function buildList(){
+  ensureToday();
+  const end = endOfToday();
+  const due = state.cards.filter(c => c.reps > 0 && c.due <= end)
+    .sort((a,b) => (b.star-a.star) || (a.due-b.due) || (a.stage-b.stage));
+  const quota = Math.max(0, state.settings.dailyNew - state.today.newCount);
+  const fresh = state.cards.filter(c => c.reps === 0).slice(0, quota);
+  return due.concat(fresh).map(c => c.id);
+}
+
+/* 复习会话 */
+let session = { list:[], pos:0, revealed:false, hist:{}, fin:{}, orig:{}, custom:false };
+const getCard = id => state.cards.find(c => c.id === id);
+const getByCode = code => state.cards.find(c => c.code === code);
+const curCard = () => getCard(session.list[session.pos]);
+function newSession(ids){
+  session = { list:ids.slice(), pos:0, revealed:false, hist:{}, fin:{}, orig:{}, custom:false };
+}
+function finalTally(){
+  const d = { f:0, o:0, e:0 };
+  for (const k in session.fin){ const v = session.fin[k]; if (d[v] !== undefined) d[v]++; }
+  return d;
+}
+function skipFinal(from){
+  let i = from;
+  while (i < session.list.length && session.fin[session.list[i]]) i++;
+  return i;
+}
+function grade(kind){
+  const c = curCard();
+  if (!c) return;
+  ensureToday();
+  if (!session.orig[c.id])
+    session.orig[c.id] = { stage:c.stage, due:c.due, reps:c.reps, lapses:c.lapses };
+  const o = session.orig[c.id];
+  if (!session.hist[c.id]) session.hist[c.id] = [];
+  const h = session.hist[c.id];
+
+  c.stage = o.stage; c.due = o.due; c.reps = o.reps; c.lapses = o.lapses;
+
+  const t = now();
+  if (kind === 'f'){ c.stage = 0; c.due = t; c.lapses++; c.reps++; }
+  else {
+    const step = kind === 'e' ? 2 : 1;
+    c.stage = clamp(c.stage + step, 0, STAGE_MAX);
+    c.due = t + INTERVALS[c.stage] * DAY;
+    c.reps++;
+  }
+  c.lastAt = t;
+  h.push(kind);
+
+  if (h.length === 1){
+    if (o.reps === 0) state.today.newCount++;
+    state.today.reviewed++;
+  }
+
+  const fc = h.filter(x => x === 'f').length;
+  if (kind === 'f' && fc < 3){
+    session.list.push(c.id);
+    delete session.fin[c.id];
+  } else {
+    session.fin[c.id] = kind;
+  }
+
+  Sound.tap(kind);
+  session.revealed = false;
+  session.pos = skipFinal(session.pos + 1);
+  save(); render(); renderHeader(); renderBadge();
+}
+function goPrev(){
+  if (state.settings.mode === 'cram'){
+    if (cram.pos > 0){ cram.pos--; cram.revealed = false; render(); }
+  } else if (session.pos > 0){ session.pos--; session.revealed = false; render(); }
+}
+function goNext(){
+  if (state.settings.mode === 'cram'){
+    if (cram.pos < cram.list.length - 1){ cram.pos++; cram.revealed = false; render(); }
+  } else if (session.pos < session.list.length - 1){ session.pos++; session.revealed = false; render(); }
+}
+
+/* 突击模式 */
+let cram = { list:[], pos:0, revealed:false, doneSet:{}, unknownSet:{}, retry:{} };
+function cramSave(){
+  try {
+    localStorage.setItem(CRAM_KEY, JSON.stringify({ l:cram.list, p:cram.pos,
+      d:cram.doneSet, u:cram.unknownSet, r:cram.retry }));
+  } catch(e){}
+}
+let cramT = null;
+function cramSaveSoon(){
+  if (cramT) return;
+  cramT = setTimeout(() => { cramT = null; cramSave(); }, 400);
+}
+function cramLoad(){
+  try {
+    const raw = localStorage.getItem(CRAM_KEY);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    cram.list = Array.isArray(o.l) ? o.l.filter(id => getCard(id)) : [];
+    cram.pos = Number(o.p) || 0;
+    if (cram.pos > cram.list.length) cram.pos = cram.list.length;
+    cram.doneSet = (o.d && typeof o.d === 'object') ? o.d : {};
+    cram.unknownSet = (o.u && typeof o.u === 'object') ? o.u : {};
+    cram.retry = (o.r && typeof o.r === 'object') ? o.r : {};
+  } catch(e){}
+}
+function cramStart(fresh){
+  if (fresh || !cram.list.length){
+    cram.list = state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id);
+    cram.pos = 0; cram.revealed = false;
+    cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+    cramSave();
+  }
+}
+const cramCur = () => getCard(cram.list[cram.pos]);
+function cramGrade(kind){
+  const c = cramCur();
+  if (!c) return;
+  if (kind === 'k'){ cram.doneSet[c.id] = 1; delete cram.unknownSet[c.id]; }
+  else {
+    cram.unknownSet[c.id] = 1; delete cram.doneSet[c.id];
+    const n = cram.retry[c.id] || 0;
+    if (n < 2){ cram.retry[c.id] = n + 1; cram.list.push(c.id); }
+  }
+  cram.revealed = false;
+  cram.pos++;
+  Sound.tap(kind === 'k' ? 'o' : 'f');
+  cramSaveSoon(); render(); renderHeader(); renderBadge();
+}
+function cramToSRS(){
+  const set = new Set(Object.keys(cram.unknownSet));
+  const picked = state.cards.filter(c => set.has(c.id));
+  for (const c of picked){ c.stage = 0; c.reps = 0; c.due = 0; }
+  state.cards = picked.concat(state.cards.filter(c => !set.has(c.id)));
+  cram.list = []; cram.pos = 0; cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+  cramSave();
+  state.settings.mode = 'srs';
+  newSession([]);
+  saveDirty = true; flushSave(); renderAll();
+  toast('已把 ' + picked.length + ' 张转入间隔复习');
+}
+
+/* 音效 */
+const Sound = (function(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null, master = null;
+  function init(){
+    if (ctx || !AC) return ctx;
+    try {
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = 0.4; master.connect(ctx.destination);
+    } catch(e){ ctx = null; }
+    return ctx;
+  }
+  function blip(f, dur, gain, type, t){
+    if (!init()) return;
+    if (ctx.state === 'suspended') { try { ctx.resume(); } catch(e){} }
+    const t0 = ctx.currentTime + (t || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  return {
+    unlock(){ const c = init(); if (c && c.state === 'suspended') { try { c.resume(); } catch(e){} } },
+    flip(){ blip(880, 0.09, 0.10); blip(1320, 0.08, 0.05, 'sine', 0.04); },
+    tap(k){
+      if (k === 'f'){ blip(300, 0.14, 0.10, 'triangle'); blip(220, 0.18, 0.07, 'sine', 0.05); }
+      else if (k === 'o'){ blip(660, 0.12, 0.11); blip(990, 0.14, 0.06, 'sine', 0.05); }
+      else { blip(784, 0.10, 0.10); blip(1046, 0.12, 0.08, 'sine', 0.05); blip(1568, 0.16, 0.05, 'sine', 0.10); }
+    }
+  };
+})();
+
+/* 渲染 */
+const GL = { f:'忘了', o:'一般', e:'很熟' };
+
+function renderHeader(){
+  const k = counts();
+  if (state.settings.mode === 'cram'){
+    D('cNew').textContent = state.cards.length - Object.keys(cram.doneSet).length;
+    D('cDue').textContent = Object.keys(cram.doneSet).length;
+  } else {
+    D('cNew').textContent = k.fresh;
+    D('cDue').textContent = k.due;
+  }
+  D('cMark').textContent = markedCount();
+  paintTime();
+}
+function renderBadge(){
+  const b = D('tabBadge');
+  let n;
+  if (state.settings.mode === 'cram'){
+    n = state.cards.length - Object.keys(cram.doneSet).length;
+  } else {
+    const k = counts(); n = k.due + Math.min(k.fresh, k.quota);
+  }
+  if (n > 0){ b.hidden = false; b.textContent = n > 99 ? '99+' : n; }
+  else b.hidden = true;
+}
+function render(){ return state.settings.mode === 'cram' ? renderCram() : renderSrs(); }
+
+function navHTML(done, total, atStart, atEnd){
+  return '<div class="navrow">'
+    + '<button class="navbtn" id="navPrev"' + (atStart ? ' disabled' : '') + '>‹ 上一张</button>'
+    + '<span class="navpos">已评 ' + done + ' / ' + total + '</span>'
+    + '<button class="navbtn" id="navNext"' + (atEnd ? ' disabled' : '') + '>下一张 ›</button>'
+    + '</div>';
+}
+function bindNav(){
+  const p = D('navPrev'), n = D('navNext');
+  if (p) p.onclick = goPrev;
+  if (n) n.onclick = goNext;
+}
+function doneBox(d){
+  return '<div class="donebox">'
+    + '<div class="dstat f"><b>' + d.f + '</b><span>忘了</span></div>'
+    + '<div class="dstat o"><b>' + d.o + '</b><span>一般</span></div>'
+    + '<div class="dstat e"><b>' + d.e + '</b><span>很熟</span></div></div>';
+}
+
+function renderSrs(){
+  const wrap = D('cardwrap'), bar = D('gradebar');
+  if (!state.cards.length){
+    wrap.innerHTML = '<div class="state"><div class="big">▤</div><h2>还没有卡片</h2>'
+      + '<p>去「卡片库」新建，或在设置里点「补齐题库」。</p><div class="row">'
+      + '<button class="pbtn pri" id="goAdd">新建卡片</button>'
+      + '<button class="pbtn" id="goCards">去卡片库</button></div></div>';
+    bar.innerHTML = '';
+    if (D('goAdd')) D('goAdd').onclick = () => openEditor(null);
+    if (D('goCards')) D('goCards').onclick = () => switchTab('cards');
+    return;
+  }
+  if (!session.list.length) newSession(buildList());
+
+  if (!session.list.length){
+    const k = counts(), d = finalTally(), sum = d.f + d.o + d.e;
+    let h = '<div class="state">';
+    if (k.due === 0 && k.fresh > 0 && k.quota === 0){
+      h += '<div class="big">◷</div><h2>今日新卡额度已用完</h2>'
+        + '<p>还有 <b>' + k.fresh + '</b> 张没学过的新卡。今日已学 '
+        + state.today.newCount + ' / ' + state.settings.dailyNew + '。</p>'
+        + '<div class="row"><button class="pbtn pri" id="btnMore">再学 50 张新卡</button>'
+        + '<button class="pbtn" id="btnCram">突击模式</button></div>';
+    } else {
+      h += '<div class="big">✦</div><h2>' + (sum ? '今天这一轮完成了' : '现在没有要复习的卡') + '</h2>'
+        + '<p>' + (sum ? '已按记忆曲线排好下次复习时间，明天再来。'
+                       : '没有到期卡，也没有待学新卡。可以「自由过一轮」或进突击模式。') + '</p>'
+        + (sum ? doneBox(d) : '')
+        + '<div class="row"><button class="pbtn pri" id="btnFree">自由过一轮</button>'
+        + '<button class="pbtn" id="btnCram">突击模式</button></div>';
+    }
+    wrap.innerHTML = h + '</div>';
+    bar.innerHTML = '';
+    if (D('btnMore')) D('btnMore').onclick = () => {
+      state.settings.dailyNew = Math.min(1000, state.settings.dailyNew + 50);
+      save(); newSession(buildList()); renderAll();
+      toast('额度已提高到 ' + state.settings.dailyNew);
+    };
+    if (D('btnFree')) D('btnFree').onclick = () => {
+      newSession(state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id));
+      renderSrs();
+    };
+    if (D('btnCram')) D('btnCram').onclick = () => {
+      state.settings.mode = 'cram'; cramStart(true); save(); renderAll();
+    };
+    return;
+  }
+
+  if (session.pos >= session.list.length){
+    const d = finalTally();
+    const uniq = new Set(session.list).size;
+    wrap.innerHTML = '<div class="state"><div class="big">✦</div><h2>本轮完成</h2>'
+      + '<p>共处理 <b>' + uniq + '</b> 张' + (session.custom ? '（自定义筛选）' : '')
+      + '，今日累计 ' + mmss(state.today.seconds) + '。</p>'
+      + doneBox(d)
+      + '<div class="row"><button class="pbtn pri" id="btnRound">再过一轮</button>'
+      + (session.custom ? '<button class="pbtn" id="btnNorm">回到正常复习</button>'
+                        : '<button class="pbtn" id="btnFree">自由过一轮</button>')
+      + '</div></div>';
+    bar.innerHTML = '';
+    if (D('btnRound')) D('btnRound').onclick = () => {
+      newSession(Array.from(new Set(session.list))); render();
+    };
+    if (D('btnNorm')) D('btnNorm').onclick = () => { newSession(buildList()); render(); };
+    if (D('btnFree')) D('btnFree').onclick = () => {
+      newSession(state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id)); render();
+    };
+    return;
+  }
+
+  const c = curCard();
+  if (!c){ session.pos++; return renderSrs(); }
+
+  wrap.innerHTML = cardHTML(c, session.revealed);
+  wrap.scrollTop = 0;
+
+  const uniq = new Set(session.list).size;
+  const done = Object.keys(session.fin).length;
+  const g = session.fin[c.id];
+  let h = navHTML(done, uniq, session.pos <= 0, session.pos >= session.list.length - 1);
+  if (!session.revealed){
+    h += '<button class="revealbtn" id="reveal">显示答案</button>';
+  } else if (g){
+    h += '<div class="gradednote">本轮已评为「' + GL[g] + '」· 点同档位可重评</div>'
+      + '<div class="grades" style="margin-top:8px">'
+      + ['f','o','e'].map(k => '<button class="gbtn ' + k + (k === g ? ' sel' : '') + '" data-g="' + k + '">'
+          + GL[k] + '<small>' + (k === 'f' ? '今天再来' : k === 'o' ? '+1 阶' : '+2 阶') + '</small></button>').join('')
+      + '</div>';
+  } else {
+    h += '<div class="grades">'
+      + '<button class="gbtn f" data-g="f">忘了<small>稍后再来</small></button>'
+      + '<button class="gbtn o" data-g="o">一般<small>+1 阶</small></button>'
+      + '<button class="gbtn e" data-g="e">很熟<small>+2 阶</small></button></div>';
+  }
+  bar.innerHTML = h;
+  bindNav();
+  if (D('reveal')) D('reveal').onclick = reveal;
+  bindCard(c, session.revealed ? null : reveal);
+  bar.querySelectorAll('[data-g]').forEach(b => { b.onclick = () => grade(b.dataset.g); });
+}
+
+function renderCram(){
+  const wrap = D('cardwrap'), bar = D('gradebar');
+  if (!state.cards.length){
+    wrap.innerHTML = '<div class="state"><div class="big">▤</div><h2>还没有卡片</h2>'
+      + '<div class="row"><button class="pbtn pri" id="goCards">去卡片库</button></div></div>';
+    bar.innerHTML = '';
+    if (D('goCards')) D('goCards').onclick = () => switchTab('cards');
+    return;
+  }
+  if (!cram.list.length) cramStart(true);
+
+  const total = state.cards.length;
+  const done = Object.keys(cram.doneSet).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const head = '<div class="progline"><span>已认 ' + done + ' / ' + total + '</span>'
+    + '<span class="progbar"><b style="width:' + pct + '%"></b></span>'
+    + '<span id="cramTime">' + mmss(state.today.seconds) + '</span></div>';
+
+  if (cram.pos >= cram.list.length){
+    const unk = Object.keys(cram.unknownSet).length;
+    wrap.innerHTML = head + '<div class="state"><div class="big">✦</div><h2>全部过完了</h2>'
+      + '<p>共 ' + total + ' 张，其中标记「不认识」的 <b>' + unk + ' 张</b>。</p>'
+      + '<div class="row"><button class="pbtn pri" id="cToSrs">转入间隔复习（' + unk + '）</button>'
+      + '<button class="pbtn" id="cBack">回到第一张</button>'
+      + '<button class="pbtn" id="cRestart">重头再突击</button></div></div>';
+    bar.innerHTML = '';
+    if (D('cToSrs')) D('cToSrs').onclick = cramToSRS;
+    if (D('cBack')) D('cBack').onclick = () => { cram.pos = 0; cram.revealed = false; render(); };
+    if (D('cRestart')) D('cRestart').onclick = () => { cramStart(true); renderAll(); };
+    return;
+  }
+
+  const c = cramCur();
+  if (!c){ cram.pos++; return renderCram(); }
+
+  wrap.innerHTML = head + cardHTML(c, cram.revealed);
+  wrap.scrollTop = 0;
+
+  let h = navHTML(done, total, cram.pos <= 0, cram.pos >= cram.list.length - 1);
+  if (!cram.revealed){
+    h += '<button class="revealbtn" id="reveal">显示答案</button>';
+  } else {
+    h += '<div class="grades two">'
+      + '<button class="gbtn f" data-g="n">不认识<small>稍后再来</small></button>'
+      + '<button class="gbtn o" data-g="k">认识<small>标记通过</small></button></div>';
+  }
+  bar.innerHTML = h;
+  bindNav();
+  const fn = () => { cram.revealed = true; Sound.unlock(); Sound.flip(); renderCram(); };
+  if (D('reveal')) D('reveal').onclick = fn;
+  bindCard(c, cram.revealed ? null : fn);
+  bar.querySelectorAll('[data-g]').forEach(b => {
+    b.onclick = () => cramGrade(b.dataset.g === 'k' ? 'k' : 'n');
+  });
+}
+
+function bindCard(c, revealFn){
+  const qc = D('qcard');
+  if (qc) qc.onclick = e => {
+    const r = e.target.closest ? e.target.closest('[data-ref]') : null;
+    if (r){
+      e.stopPropagation();
+      const t = getByCode(r.dataset.ref);
+      if (t) openEditor(t.id); else toast('找不到卡片 ' + r.dataset.ref);
+      return;
+    }
+    if (revealFn) revealFn();
+  };
+  const mb = D('markBtn');
+  if (mb) mb.onclick = e => { e.stopPropagation(); toggleMark(c); };
+}
+function toggleMark(c){
+  if (!c) return;
+  c.mark = !c.mark;
+  save(); render(); renderHeader();
+  if (navigator.vibrate) navigator.vibrate(10);
+  toast(c.mark ? '已加入个人标记' : '已取消标记');
+}
+function cardHTML(c, revealed){
+  let tags = '<div class="tagrow">';
+  if (c.star) tags += '<span class="tag star" style="' + STAR_STYLE[c.star] + '">'
+    + '★★★'.slice(0, c.star) + '</span>';
+  if (c.code) tags += '<span class="tag code">#' + esc(c.code) + '</span>';
+  if (c.tags && c.tags.length){
+    tags += '<span class="tag" style="' + tagStyle(lastTag(c)) + '">' + esc(lastTag(c)) + '</span>';
+    c.tags.slice(0, -1).forEach(t => { tags += '<span class="tag ghost">' + esc(t) + '</span>'; });
+  }
+  if (state.settings.mode === 'srs') tags += '<span class="tag ghost">第 ' + c.stage + ' 阶</span>';
+  tags += '<button class="markbtn' + (c.mark ? ' on' : '') + '" id="markBtn">⚑</button></div>';
+
+  const idx = (c.idx && c.idx.length === 3)
+    ? '<div class="idxline"><b>' + esc(c.idx[0]) + '</b> › ' + esc(c.idx[1]) + ' › ' + esc(c.idx[2]) + '</div>'
+    : '';
+
+  let h = '<div class="qcard' + (c.mark ? ' marked' : '') + '" id="qcard">'
+    + tags + idx + '<div class="qtext">' + c.q + '</div>';
+  if (revealed){
+    h += '<div class="divider"></div><div class="atext">' + c.a + '</div>';
+    if (c.tip) h += '<div class="tipbox">' + c.tip + '</div>';
+    if (c.refs && c.refs.length){
+      h += '<div class="refbox"><span>关联</span>'
+        + c.refs.map(r => '<button class="refchip" data-ref="' + esc(r) + '">#' + esc(r) + '</button>').join('')
+        + '</div>';
+    }
+  } else {
+    h += '<div class="askhint"><i>◔</i>轻点卡片显示答案</div>';
+  }
+  return h + '</div>';
+}
+function reveal(){
+  if (session.revealed) return;
+  session.revealed = true; Sound.unlock(); Sound.flip(); renderSrs();
+}
+
+/* 卡片库 */
+let filter = { kind:'all', val:null };
+let keyword = '', shown = 50;
+function tagSet(){
+  const s = new Set();
+  for (const c of state.cards){ const t = lastTag(c); if (t) s.add(t); }
+  return Array.from(s);
+}
+function matchIdx(c, path){
+  if (!path || !path.length) return true;
+  const p = c.idx || [];
+  for (let i = 0; i < path.length; i++) if (p[i] !== path[i]) return false;
+  return true;
+}
+function renderChips(){
+  const crumb = D('crumb');
+  if (filter.kind === 'idx' && filter.val && filter.val.length){
+    crumb.hidden = false;
+    crumb.innerHTML = '<span>' + filter.val.map(esc).join(' › ') + '</span><b id="crumbX">清除</b>';
+    D('crumbX').onclick = () => { filter = { kind:'all', val:null }; renderChips(); renderList(); };
+  } else crumb.hidden = true;
+
+  let h = '<button class="chip' + (filter.kind === 'all' ? ' on' : '') + '" data-k="all">全部</button>';
+  const mn = markedCount();
+  if (mn) h += '<button class="chip mark' + (filter.kind === 'mark' ? ' on' : '')
+    + '" data-k="mark">⚑ 标记 ' + mn + '</button>';
+  if (state.cards.some(c => c.star > 0)){
+    [3,2,1].forEach(n => {
+      h += '<button class="chip' + (filter.kind === 'star' && filter.val === n ? ' on' : '')
+        + '" data-k="star" data-v="' + n + '">' + '★★★'.slice(0, n) + '</button>';
+    });
+  }
+  tagSet().forEach(t => {
+    h += '<button class="chip' + (filter.kind === 'tag' && filter.val === t ? ' on' : '')
+      + '" data-k="tag" data-v="' + esc(t) + '">' + esc(t) + '</button>';
+  });
+  D('chips').innerHTML = h;
+  D('chips').querySelectorAll('[data-k]').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.k;
+      if (k === 'all') filter = { kind:'all', val:null };
+      else if (k === 'mark') filter = { kind:'mark', val:null };
+      else if (k === 'star') filter = { kind:'star', val:Number(b.dataset.v) };
+      else filter = { kind:'tag', val:b.dataset.v };
+      shown = 50; renderChips(); renderList();
+    };
+  });
+}
+function filtered(){
+  const kw = keyword.trim().toLowerCase();
+  return state.cards.filter(c => {
+    if (filter.kind === 'mark' && !c.mark) return false;
+    if (filter.kind === 'tag' && lastTag(c) !== filter.val) return false;
+    if (filter.kind === 'star' && c.star !== filter.val) return false;
+    if (filter.kind === 'idx' && !matchIdx(c, filter.val)) return false;
+    if (!kw) return true;
+    const hay = (plain(c.q) + ' ' + plain(c.a) + ' ' + (c.tags||[]).join(' ') + ' '
+      + (c.idx||[]).join(' ') + ' ' + (c.code||'') + ' ' + (c.refs||[]).join(' ')).toLowerCase();
+    return hay.indexOf(kw) > -1;
+  });
+}
+function stageLabel(c){
+  if (c.reps === 0) return { txt:'新卡', cls:'new' };
+  if (c.due <= endOfToday()) return { txt:'到期', cls:'due' };
+  const d = Math.max(1, Math.ceil((c.due - now()) / DAY));
+  return { txt:'+' + d + 'd', cls:'' };
+}
+function renderList(){
+  const list = filtered(), box = D('listwrap');
+  if (!list.length){ box.innerHTML = '<div class="empty">没有匹配的卡片</div>'; return; }
+  let h = '<div class="idxsum" style="margin-bottom:8px">筛选结果 <b>' + list.length
+    + '</b> 张 · 全部 <b>' + state.cards.length + '</b> 张</div>';
+  if (filter.kind === 'mark'){
+    h += '<button class="more go" id="reviewMark">只复习这 ' + list.length + ' 张（个人标记）</button>';
+  }
+  list.slice(0, shown).forEach(c => {
+    const st = stageLabel(c), t = lastTag(c);
+    h += '<div class="litem' + (c.mark ? ' marked' : '') + '" data-id="' + c.id + '">'
+      + '<div class="ldot"' + (t ? ' style="background:' + tagColor(t) + '"' : '') + '></div>'
+      + '<div class="lmain"><div class="lq">' + c.q + '</div><div class="lmeta">'
+      + (c.mark ? '<span class="lflag">⚑</span>' : '')
+      + (c.code ? '<span class="lcode">#' + esc(c.code) + '</span>' : '')
+      + (c.star ? '<span class="tag star" style="' + STAR_STYLE[c.star] + '">'
+          + '★★★'.slice(0, c.star) + '</span>' : '')
+      + '<span>' + esc((c.tags||[]).slice(0,-1).join(' · ') || '未分类') + '</span>'
+      + (c.idx ? '<span class="lidx">' + esc(c.idx[1] + '·' + c.idx[2]) + '</span>' : '')
+      + '<span>' + (c.reps ? '复习 ' + c.reps : '未学') + '</span>'
+      + (c.lapses ? '<span>错 ' + c.lapses + '</span>' : '')
+      + '</div></div>'
+      + '<div class="lright"><span class="stage ' + st.cls + '">' + st.txt + '</span>'
+      + '<span class="ldel" data-del="' + c.id + '">删</span></div></div>';
+  });
+  if (list.length > shown)
+    h += '<button class="more" id="moreBtn">还有 ' + (list.length - shown) + ' 张，点击加载</button>';
+  box.innerHTML = h;
+
+  if (D('reviewMark')) D('reviewMark').onclick = () => {
+    newSession(list.map(c => c.id));
+    session.custom = true;
+    switchTab('review');
+  };
+  box.querySelectorAll('.litem').forEach(el => {
+    el.onclick = e => { if (e.target.dataset && e.target.dataset.del) return; openEditor(el.dataset.id); };
+  });
+  box.querySelectorAll('[data-del]').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); removeCard(el.dataset.del); };
+  });
+  if (D('moreBtn')) D('moreBtn').onclick = () => { shown += 100; renderList(); };
+}
+function removeCard(id){
+  const i = state.cards.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const back = state.cards[i];
+  state.cards.splice(i,1); save(); renderAll();
+  toast('已删除', '撤销', () => { state.cards.splice(i,0,back); save(); renderAll(); });
+}
+
+/* 索引 */
+const idxOpen = new Set();
+function renderIndex(){
+  const box = D('idxwrap');
+  if (!state.cards.length){ box.innerHTML = '<div class="empty">还没有卡片</div>'; return; }
+  const tree = new Map();
+  for (const c of state.cards){
+    const p = (c.idx && c.idx.length === 3) ? c.idx : ['未分类','未分类','未分类'];
+    if (!tree.has(p[0])) tree.set(p[0], new Map());
+    const m2 = tree.get(p[0]);
+    if (!m2.has(p[1])) m2.set(p[1], new Map());
+    const m3 = m2.get(p[1]);
+    m3.set(p[2], (m3.get(p[2]) || 0) + 1);
+  }
+  const k = counts();
+  const auto = state.cards.filter(c => c.idxAuto).length;
+  let h = '<div class="idxsum">共 <b>' + state.cards.length + '</b> 张 · 未学 <b>' + k.fresh
+    + '</b> · 到期 <b>' + k.due + '</b> · 标记 <b>' + markedCount() + '</b><br>'
+    + tree.size + ' 个学科，' + Array.from(tree.values()).reduce((s,m) => s + m.size, 0) + ' 个科目'
+    + (auto ? '，其中 <b>' + auto + '</b> 张索引自动判断' : '') + '</div>';
+
+  tree.forEach((m2, l1) => {
+    let n1 = 0;
+    m2.forEach(m3 => { m3.forEach(v => { n1 += v; }); });
+    const open1 = idxOpen.has(l1);
+    h += '<div class="idxrow l1" data-nv="1" data-k="' + esc(l1) + '">'
+      + '<span class="idxarrow">' + (open1 ? '▾' : '▸') + '</span>'
+      + '<span class="idxname">' + esc(l1) + '</span><span class="idxcnt">' + n1 + '</span></div>';
+    if (!open1) return;
+    m2.forEach((m3, l2) => {
+      const key2 = l1 + '/' + l2;
+      let n2 = 0;
+      m3.forEach(v => { n2 += v; });
+      const open2 = idxOpen.has(key2);
+      h += '<div class="idxrow l2" data-nv="2" data-v="' + esc(key2) + '">'
+        + '<span class="idxarrow">' + (open2 ? '▾' : '▸') + '</span>'
+        + '<span class="idxname">' + esc(l2) + '</span><span class="idxcnt">' + n2 + '</span></div>';
+      if (!open2) return;
+      m3.forEach((n3, l3) => {
+        h += '<div class="idxrow l3" data-nv="3" data-v=\'' + esc(JSON.stringify([l1, l2, l3])) + '\'>'
+          + '<span class="idxarrow">›</span><span class="idxname">' + esc(l3) + '</span>'
+          + '<span class="idxcnt">' + n3 + '</span></div>';
+      });
+    });
+  });
+  h += '<div class="idxtip">点第三层进入卡片库筛选；<b>长按</b>科目可看该科目全部卡片。</div>';
+  box.innerHTML = h;
+
+  box.querySelectorAll('.idxrow').forEach(el => {
+    const lv = el.dataset.nv;
+    if (lv === '1'){
+      const kk = el.dataset.k;
+      el.onclick = () => { idxOpen.has(kk) ? idxOpen.delete(kk) : idxOpen.add(kk); renderIndex(); };
+    } else if (lv === '2'){
+      const kk = el.dataset.v, path = kk.split('/');
+      let timer = null;
+      el.onclick = () => {
+        if (timer){ clearTimeout(timer); timer = null; return; }
+        idxOpen.has(kk) ? idxOpen.delete(kk) : idxOpen.add(kk); renderIndex();
+      };
+      el.addEventListener('pointerdown', () => {
+        timer = setTimeout(() => {
+          timer = null;
+          filter = { kind:'idx', val:path }; shown = 50;
+          switchTab('cards'); renderChips(); renderList();
+        }, 520);
+      });
+      ['pointerup','pointercancel','pointerleave'].forEach(ev => {
+        el.addEventListener(ev, () => { if (timer){ clearTimeout(timer); timer = null; } });
+      });
+    } else {
+      el.onclick = () => {
+        try { filter = { kind:'idx', val:JSON.parse(el.dataset.v) }; } catch(e){ return; }
+        shown = 50; switchTab('cards'); renderChips(); renderList();
+      };
+    }
+  });
+}
+
+/* 编辑器 */
+let editingId = null, editStar = 0, editMark = false;
+let editIdx = [TOP, SUBJECTS[0], TYPES[0]];
+function renderIdxPick(){
+  const mk = (arr, cur, lv) => arr.map(v =>
+    '<button class="opt' + (v === cur ? ' on' : '') + '" data-lv="' + lv + '" data-v="' + esc(v) + '">'
+    + esc(v) + '</button>').join('');
+  D('edIdx1').innerHTML = mk([TOP], editIdx[0], 0);
+  D('edIdx2').innerHTML = mk(SUBJECTS, editIdx[1], 1);
+  D('edIdx3').innerHTML = mk(TYPES, editIdx[2], 2);
+  D('edIdxHint').textContent = editIdx.join(' › ');
+}
+function paintStar(){
+  D('edStar').querySelectorAll('[data-s]').forEach(b => {
+    b.classList.toggle('on', Number(b.dataset.s) === editStar);
+  });
+}
+function paintMark(){
+  D('edMark').querySelectorAll('[data-mk]').forEach(b => {
+    b.classList.toggle('on', (b.dataset.mk === '1') === editMark);
+  });
+}
+function updateCounts(){
+  const set = (el, n, lim) => { el.textContent = n + ' / ' + lim; el.classList.toggle('over', n > lim); };
+  set(D('cntQ'), D('edQ').value.length, LIM_Q);
+  set(D('cntA'), D('edA').value.length, LIM_A);
+  set(D('cntT'), D('edT').value.length, LIM_T);
+}
+function openEditor(id){
+  editingId = id || null;
+  const c = id ? getCard(id) : null;
+  D('edTitle').textContent = c ? '编辑卡片' : '新建卡片';
+  D('edStage').textContent = c ? ('第 ' + c.stage + ' 阶 · 已复习 ' + c.reps + ' 次')
+    : ('剩余可添加 ' + Math.max(0, MAX_CARDS - state.cards.length) + ' 张');
+  D('edQ').value = c ? plain(c.q) : '';
+  D('edA').value = c ? plain(c.a).replace(/<br>/g, '\n') : '';
+  D('edT').value = c ? plain(c.tip) : '';
+  D('edG').value = c ? (c.tags || []).join('::') : (SUBJECTS[0] ? '' : '');
+  D('edCode').value = c ? c.code : '';
+  D('edRefs').value = (c && c.refs) ? c.refs.join(', ') : '';
+  editStar = c ? c.star : 0;
+  editMark = c ? !!c.mark : false;
+  editIdx = (c && c.idx && c.idx.length === 3) ? c.idx.slice() : [TOP, SUBJECTS[0], TYPES[0]];
+  paintStar(); paintMark(); renderIdxPick(); updateCounts();
+  D('edDel').hidden = !c;
+  D('maskEdit').hidden = false;
+}
+D('edStar').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-s]') : null;
+  if (!b) return;
+  editStar = Number(b.dataset.s); paintStar();
+};
+D('edMark').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-mk]') : null;
+  if (!b) return;
+  editMark = b.dataset.mk === '1'; paintMark();
+};
+['edIdx1','edIdx2','edIdx3'].forEach(id => {
+  D(id).onclick = e => {
+    const b = e.target.closest ? e.target.closest('[data-lv]') : null;
+    if (!b) return;
+    editIdx[Number(b.dataset.lv)] = b.dataset.v; renderIdxPick();
+  };
+});
+D('edIdxGuess').onclick = () => {
+  editIdx = guessIndex(D('edQ').value, D('edA').value, D('edG').value.split('::'));
+  renderIdxPick(); toast('已按内容判断，可再手改');
+};
+['edQ','edA','edT'].forEach(id => { D(id).addEventListener('input', updateCounts); });
+
+D('edSave').onclick = () => {
+  const q = cleanInline(D('edQ').value.replace(/\n/g, '<br>'));
+  const a = cleanInline(D('edA').value.replace(/\n/g, '<br>'));
+  const tip = cleanInline(D('edT').value.replace(/\n/g, '<br>'));
+  const tags = D('edG').value.split('::').map(s => s.trim()).filter(Boolean);
+  const code = D('edCode').value.trim().replace(/^#/, '').toUpperCase().slice(0, 12);
+  const refs = D('edRefs').value.split(/[,，\s]+/)
+    .map(s => s.replace(/^#/,'').toUpperCase()).filter(Boolean).slice(0, 6);
+  if (!plain(q)){ toast('问题不能为空'); return; }
+  if (!plain(a)){ toast('答案不能为空'); return; }
+  if (editingId){
+    const c = getCard(editingId);
+    if (c){
+      c.q = q; c.a = a; c.tip = tip; c.tags = tags; c.star = editStar; c.mark = editMark;
+      c.code = code; c.refs = refs; c.idx = editIdx.slice(); c.idxAuto = false;
+    }
+  } else {
+    if (state.cards.length >= MAX_CARDS){ toast('已达上限'); return; }
+    state.cards.push(sanitizeCard({ q:q, a:a, tip:tip, tags:tags, star:editStar, mark:editMark,
+      code:code, refs:refs, idx:editIdx.slice(), idxAuto:false, stage:0, due:0, reps:0, created:now() }));
+  }
+  save(); D('maskEdit').hidden = true; newSession([]); renderAll();
+  toast(editingId ? '已保存' : '已添加');
+};
+D('edDel').onclick = () => {
+  if (!editingId) return;
+  const id = editingId;
+  D('maskEdit').hidden = true; removeCard(id);
+};
+D('edCancel').onclick = () => { D('maskEdit').hidden = true; };
+
+/* 导入导出 */
+D('btnImport').onclick = () => { D('impText').value = ''; D('maskImport').hidden = false; };
+D('impCancel').onclick = () => { D('maskImport').hidden = true; };
+D('impOk').onclick = () => {
+  const res = parseSource(D('impText').value, false);
+  if (!res.cards.length){ toast('没有解析到有效卡片'); return; }
+  const room = Math.max(0, MAX_CARDS - state.cards.length);
+  const take = res.cards.slice(0, room);
+  const have = new Set(state.cards.map(c => key(c.q)));
+  let added = 0, skipped = 0;
+  for (const c of take){
+    const k = key(c.q);
+    if (have.has(k)){ skipped++; continue; }
+    state.cards.push(c); have.add(k); added++;
+  }
+  save(); flushSave(); D('maskImport').hidden = true; newSession([]);
+  if (state.settings.mode === 'cram') cramStart(true);
+  renderAll();
+  toast('导入 ' + added + ' 张' + (skipped ? '，跳过重复 ' + skipped : ''));
+};
+D('btnExport').onclick = () => {
+  D('expCount').textContent = state.cards.length + ' 张';
+  D('expText').value = JSON.stringify({ v:1, exportedAt:new Date().toISOString(),
+    count:state.cards.length, cards:state.cards }, null, 1);
+  D('maskExport').hidden = false;
+};
+D('expClose').onclick = () => { D('maskExport').hidden = true; };
+D('expCopy').onclick = async () => {
+  const t = D('expText').value;
+  try { await navigator.clipboard.writeText(t); toast('已复制'); return; } catch(e){}
+  try { D('expText').select(); document.execCommand('copy'); toast('已复制'); }
+  catch(e){ toast('复制失败，请长按全选'); }
+};
+D('expFile').onclick = () => {
+  try {
+    const blob = new Blob([D('expText').value], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = APP.name + '-备份-' + todayKey() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('已生成备份文件');
+  } catch(e){ toast('下载失败，请改用复制'); }
+};
+
+/* 设置 */
+function openSettings(){
+  D('setStat').textContent = state.cards.length + ' 张';
+  D('optMode').querySelectorAll('[data-m]').forEach(b => {
+    b.classList.toggle('on', b.dataset.m === state.settings.mode);
+  });
+  D('optNew').querySelectorAll('[data-n]').forEach(b => {
+    b.classList.toggle('on', Number(b.dataset.n) === state.settings.dailyNew);
+  });
+  const k = counts(), bank = seedParsed().cards.length;
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  let size = 0;
+  try { size = new Blob([JSON.stringify(state.cards)]).size; } catch(e){}
+  D('todayNote').innerHTML =
+      '内置题库 <b>' + bank + '</b> 张（版本 ' + APP.seedVer + '）　本地 <b>'
+      + state.cards.length + '</b> 张<br>'
+    + '重复组 <b>' + groups.length + '</b> 组（多出 <b>' + extra + '</b> 张）<br>'
+    + '未学 <b>' + k.fresh + '</b>　到期 <b>' + k.due + '</b>　标记 <b>' + markedCount() + '</b><br>'
+    + '今日已学新卡 <b>' + state.today.newCount + '</b> / ' + state.settings.dailyNew
+    + '　复习 <b>' + state.today.reviewed + '</b> 次<br>'
+    + '今日时长 <b>' + mmss(state.today.seconds) + '</b>　存储约 <b>'
+    + (size/1024).toFixed(0) + ' KB</b>';
+  D('maskSet').hidden = false;
+}
+D('gear').onclick = openSettings;
+D('setDone').onclick = () => { D('maskSet').hidden = true; renderAll(); };
+D('setToday').onclick = () => {
+  ensureToday(); state.today.seconds = 0; save(); openSettings(); paintTime();
+  toast('今日学时已归零');
+};
+D('setResetToday').onclick = () => {
+  ensureToday(); state.today.newCount = 0; state.today.reviewed = 0;
+  newSession([]); save(); flushSave(); renderAll(); openSettings();
+  toast('已重置今日计数');
+};
+D('setSeed').onclick = () => {
+  const n = mergeSeed();
+  saveDirty = true; flushSave();
+  newSession([]); renderAll(); openSettings();
+  toast(n ? ('已补齐 ' + n + ' 张 · 共 ' + state.cards.length + ' 张')
+          : ('题库已完整 · 共 ' + state.cards.length + ' 张'));
+};
+D('setReindex').onclick = () => {
+  const n = reindexAuto();
+  saveDirty = true; flushSave();
+  renderAll(); openSettings();
+  toast(n ? ('已重算 ' + n + ' 张') : '索引没有需要更新的');
+};
+D('setDup').onclick = () => {
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  if (!extra){ toast('没有发现重复卡片'); return; }
+  const ok = window.confirm('发现 ' + groups.length + ' 组重复（共多出 ' + extra + ' 张）。\n\n'
+    + '清理会保留每组中复习进度最多的那一张，合并标记/星级/编号，其余删除。\n\n确定清理？');
+  if (!ok) return;
+  const n = dedupe();
+  save(); flushSave(); newSession([]); renderAll(); openSettings();
+  toast('已清理 ' + n + ' 张重复 · 共 ' + state.cards.length + ' 张');
+};
+D('setResetAll').onclick = () => {
+  const ok = window.confirm('重置全部复习进度：\n\n'
+    + '所有 ' + state.cards.length + ' 张卡都会变回「新卡」，'
+    + '阶数/到期时间/复习次数清零。\n\n卡片内容、个人标记、星级、编号、索引全部保留。\n\n确定？');
+  if (!ok) return;
+  for (const c of state.cards){
+    c.stage = 0; c.due = 0; c.reps = 0; c.lapses = 0; c.lastAt = 0;
+  }
+  ensureToday();
+  state.today.newCount = 0;
+  state.today.reviewed = 0;
+  newSession([]);
+  save(); flushSave(); renderAll(); openSettings();
+  toast('已重置，全部 ' + state.cards.length + ' 张变成新卡');
+};
+D('setClear').onclick = () => {
+  const ok = window.confirm('清空全部卡片：\n\n'
+    + '本地 ' + state.cards.length + ' 张卡会全部删除（包括自己加的）。\n'
+    + '内置题库不受影响，点「补齐题库」可重新装入。\n\n'
+    + '建议先「卡片库 → ⤒ 导出」备份。\n\n确定清空？');
+  if (!ok) return;
+  state.cards = [];
+  cram.list = []; cram.pos = 0; cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+  cramSave();
+  state.seeded = true;
+  state.seedVer = APP.seedVer;
+  ensureToday();
+  state.today.newCount = 0;
+  state.today.reviewed = 0;
+  newSession([]);
+  save(); flushSave(); renderAll(); openSettings();
+  toast('已清空。点「补齐题库」重新装入 ' + seedParsed().cards.length + ' 张');
+};
+D('optMode').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-m]') : null;
+  if (!b) return;
+  state.settings.mode = b.dataset.m;
+  if (state.settings.mode === 'cram') cramStart(!cram.list.length);
+  save(); flushSave();
+  D('optMode').querySelectorAll('[data-m]').forEach(x => { x.classList.toggle('on', x === b); });
+  renderAll();
+};
+D('optNew').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-n]') : null;
+  if (!b) return;
+  state.settings.dailyNew = Number(b.dataset.n);
+  save();
+  D('optNew').querySelectorAll('[data-n]').forEach(x => { x.classList.toggle('on', x === b); });
+  newSession([]); renderAll(); openSettings();
+};
+
+/* 标签页 */
+let curTab = 'review';
+function switchTab(t){
+  curTab = t;
+  D('scrReview').hidden = (t !== 'review');
+  D('scrCards').hidden = (t !== 'cards');
+  D('scrIndex').hidden = (t !== 'index');
+  D('fab').hidden = (t === 'review');
+  document.querySelectorAll('.tab').forEach(b => { b.classList.toggle('on', b.dataset.tab === t); });
+  if (t === 'cards'){ renderChips(); renderList(); }
+  else if (t === 'index') renderIndex();
+  else render();
+  paintTime();
+}
+document.querySelectorAll('.tab').forEach(b => {
+  b.onclick = () => { Sound.unlock(); switchTab(b.dataset.tab); };
+});
+D('fab').onclick = () => openEditor(null);
+D('search').addEventListener('input', e => {
+  keyword = e.target.value; shown = 50; renderList();
+});
+
+document.addEventListener('keydown', e => {
+  if (!D('maskEdit').hidden || !D('maskImport').hidden
+      || !D('maskExport').hidden || !D('maskSet').hidden) return;
+  if (curTab !== 'review') return;
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); goPrev(); return; }
+  if (e.key === 'ArrowRight'){ e.preventDefault(); goNext(); return; }
+  const isCram = state.settings.mode === 'cram';
+  const rev = isCram ? cram.revealed : session.revealed;
+  if (e.key === ' ' || e.key === 'Enter'){
+    e.preventDefault();
+    if (!rev){
+      if (isCram){ cram.revealed = true; Sound.unlock(); Sound.flip(); renderCram(); }
+      else reveal();
+    }
+    return;
+  }
+  if (e.key.toLowerCase() === 'm' && !isCram){ toggleMark(curCard()); return; }
+  if (!rev) return;
+  if (isCram){
+    if (e.key === '1') cramGrade('n');
+    else if (e.key === '2') cramGrade('k');
+  } else {
+    if (e.key === '1') grade('f');
+    else if (e.key === '2') grade('o');
+    else if (e.key === '3') grade('e');
+  }
+});
+
+/* 提示 */
+let toastTimer = null;
+function toast(msg, actionLabel, onAction){
+  const el = D('toast');
+  if (!el) return;
+  el.innerHTML = ''; el.textContent = msg;
+  if (actionLabel && onAction){
+    const b = document.createElement('b');
+    b.textContent = ' ' + actionLabel;
+    b.style.cssText = 'color:#8FC8FF;margin-left:10px';
+    b.onclick = ev => { ev.stopPropagation(); hideToast(); onAction(); };
+    el.appendChild(b); el.style.pointerEvents = 'auto';
+  } else el.style.pointerEvents = 'none';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 4200);
+}
+function hideToast(){
+  const el = D('toast');
+  if (el) el.classList.remove('show');
+  clearTimeout(toastTimer);
+}
+function renderAll(){
+  renderHeader(); renderBadge();
+  if (curTab === 'cards'){ renderChips(); renderList(); }
+  else if (curTab === 'index') renderIndex();
+  else render();
+}
+
+/* 启动 */
+function boot(){
+  document.title = APP.name;
+  if (D('appName')) D('appName').textContent = APP.name;
+  ensureToday();
+  if (!load()) state.cards = [];
+
+  const fixed = normalizeAll();
+  let added = 0;
+  if (!state.seeded || (state.seedVer || 0) < APP.seedVer) added = mergeSeed();
+
+  let idxN = 0;
+  if ((state.idxVer || 0) < 1) idxN = applyIndexMigration();
+
+  saveDirty = true; flushSave();
+
+  cramLoad();
+  if (state.settings.mode === 'cram' && !cram.list.length) cramStart(true);
+  newSession([]);
+  renderHeader(); renderBadge(); switchTab('review');
+  startTimer();
+
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  const msg = [];
+  if (added) msg.push('装入 ' + added + ' 张');
+  if (fixed) msg.push('修正 ' + fixed + ' 张');
+  if (idxN) msg.push('索引 ' + idxN + ' 张');
+  msg.push('共 ' + state.cards.length + ' 张');
+  setTimeout(() => {
+    toast(msg.join('，') + (extra ? '　⚠有 ' + extra + ' 张重复，去设置清理' : ''));
+  }, 350);
+}
+
+try { boot(); }
+catch (err){
+  const d = document.createElement('div');
+  d.id = 'fatal';
+  d.textContent = '初始化失败\n\n' + (err && err.stack ? err.stack : String(err))
+    + '\n\n把这段发给我。数据没丢，还在浏览器里。';
+  document.body.appendChild(d);
+}
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+</body>
+</html>

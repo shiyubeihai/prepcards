@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F4EE">
+<title>312 记忆卡</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="312 记忆卡">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  background:linear-gradient(180deg,#FAF7F0 0%,#F3EEE4 60%,#EAE3D6 100%);
+  background-attachment:fixed;color:#2F2A22;
+  font:16px/1.6 system-ui,-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+  display:flex;justify-content:center;
+  padding:calc(26px + env(safe-area-inset-top)) 16px calc(34px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:none;
+}
+.wrap{width:100%;max-width:720px}
+header{margin-bottom:20px}
+h1{margin:0 0 6px;font-size:25px;letter-spacing:.5px;display:flex;align-items:center;gap:9px}
+h1 em{font-style:normal;font-size:10.5px;font-weight:800;color:#2F6B4F;background:#E7F2EA;
+  border:1px solid #CFE5D7;border-radius:7px;padding:2px 7px;letter-spacing:.5px;transform:translateY(2px)}
+.sub{margin:0;color:#7A6F5C;font-size:14px}
+.sub b{color:#2F6B4F;font-weight:700}
+.today{
+  margin-top:14px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;
+  background:#fff;border:1px solid #E2D9C7;border-radius:12px;
+  padding:8px 13px;font-size:13px;color:#6B5F4C;
+  box-shadow:0 2px 8px rgba(90,72,40,.06)
+}
+.today[hidden]{display:none!important}
+.today b{color:#2F6B4F;font-size:15px;font-variant-numeric:tabular-nums}
+.today span{color:#A2957C}
+.grid{display:grid;gap:12px}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+.card{
+  display:flex;gap:14px;align-items:stretch;
+  background:#fff;border:1px solid #E4DCCB;border-radius:18px;
+  padding:15px 16px;text-decoration:none;color:inherit;
+  box-shadow:0 4px 16px rgba(90,72,40,.07);
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+  position:relative;overflow:hidden
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(90,72,40,.12);border-color:#D6CAB2}
+.card:active{transform:translateY(0)}
+.bar{width:5px;border-radius:4px;flex:0 0 auto}
+.main{flex:1 1 auto;min-width:0}
+.name{font-size:16.5px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:7px}
+.name em{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;border-radius:6px;padding:1px 6px;letter-spacing:0}
+.desc{margin-top:2px;font-size:12.5px;color:#8A7E6A}
+.meta{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;color:#6B5F4C}
+.pill{background:#F6F1E7;border:1px solid #E8DFCD;border-radius:8px;padding:2px 7px;font-variant-numeric:tabular-nums}
+.pill.due{background:#FDF0EE;border-color:#F0D2CC;color:#A8442F}
+.pill.new{background:#EFF6F1;border-color:#CFE5D7;color:#2F6B4F}
+.arrow{align-self:center;color:#BFB39A;font-size:18px;flex:0 0 auto}
+.install{margin-top:16px;background:#fff;border:1px solid #E4DCCB;border-radius:14px;padding:0 15px;box-shadow:0 3px 12px rgba(90,72,40,.05)}
+.install summary{cursor:pointer;list-style:none;padding:13px 0;font-size:14px;font-weight:800;color:#5C5140;display:flex;align-items:center;gap:7px}
+.install summary::-webkit-details-marker{display:none}
+.install summary::after{content:"›";margin-left:auto;color:#BFB39A;transition:transform .2s}
+.install[open] summary::after{transform:rotate(90deg)}
+.install .body{padding:0 0 14px;font-size:13px;line-height:1.85;color:#6B5F4C}
+.install ol{margin:6px 0 0;padding-left:18px}
+.install code{font:12px ui-monospace,Menlo,Consolas,monospace;background:#F3EDE0;border-radius:5px;padding:1px 5px}
+.foot{margin-top:22px;font-size:12px;line-height:1.8;color:#8A7E6A;border-top:1px dashed #DCD1BC;padding-top:14px}
+.foot b{color:#5C5140}
+.warn{background:#FDF8EC;border-left:3px solid #EFD9A8;border-radius:0 9px 9px 0;padding:9px 12px;margin-top:14px;font-size:12.5px;color:#8A7A66}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>312 记忆卡 <em>离线可用</em></h1>
+    <p class="sub">4 组卡，共 <b>409</b> 张 · 点击进入</p>
+    <div class="today" id="today" hidden>今天到期 <b id="dueN">0</b> 张 <span>·</span> 新卡 <b id="newN">0</b> 张</div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <details class="install">
+    <summary>添加到手机主屏幕</summary>
+    <div class="body">
+      <b>iPhone / iPad</b>：用 Safari 打开本页 → 点底部「分享」→「添加到主屏幕」。<br>
+      <b>安卓</b>：用 Chrome 打开 → 右上角 ⋮ →「安装应用」或「添加到主屏幕」。<br>
+      添加后从图标进入即为全屏，断网也能用。<br>
+      <b>注意</b>：第一次打开必须联网，等页面加载完，离线缓存才会写入。
+    </div>
+  </details>
+
+  <div class="warn">
+    进度存在本机浏览器里，不随账号同步。清缓存、换手机、换网址都会丢，重要进度请用卡组内的「导出」备份。
+  </div>
+
+  <div class="foot">
+    <b>使用顺序</b>：新卡过一轮 → 到期后按记忆曲线复习 → 拿不准的标 ⚑ 集中刷。<br>
+    <b>备份</b>：卡片库右上角「⤒」导出 JSON；换设备时用「⤓」导入。<br>
+    <b>框架</b>：空白模板，改 <code>SEED_SOURCE</code> 即可生成新的一组卡。
+  </div>
+</div>
+
+<script>
+const DECKS = [
+  { name:'测量与统计', file:'measure-1.html', key:'memcard.psy312.v1',
+    color:'#2E6FC4', total:162, chapters:9, desc:'测量学 + 统计推断', badge:'' },
+  { name:'测量统计 2', file:'measure-2.html', key:'memcard.psy312m2.v1',
+    color:'#3C7FA8', total:79, chapters:13, desc:'统计 44 · 测量 35', badge:'2' },
+  { name:'发展教育', file:'dev-edu.html', key:'memcard.psy312dev.v1',
+    color:'#8A6A34', total:85, chapters:19, desc:'发展 47 · 教育 38', badge:'' },
+  { name:'普心', file:'general.html', key:'memcard.psy312gen.v1',
+    color:'#6F5B93', total:83, chapters:12, desc:'普通心理学通篇', badge:'' }
+];
+const FRAME = { name:'记忆卡框架', file:'framework.html', color:'#6B7280',
+  desc:'空白模板，换内容用', tag:'模板' };
+
+function readStats(key){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(!o || !Array.isArray(o.cards) || !o.cards.length) return null;
+    const end = new Date(); end.setHours(23,59,59,999);
+    let due = 0, fresh = 0;
+    for(const c of o.cards){
+      if(!c.reps) fresh++;
+      else if(c.due <= end.getTime()) due++;
+    }
+    return { due, fresh, total:o.cards.length };
+  }catch(e){ return null; }
+}
+
+const grid = document.getElementById('grid');
+let allDue = 0, allNew = 0, reachable = 0;
+
+DECKS.forEach(d => {
+  const st = readStats(d.key);
+  const total = st ? st.total : d.total;
+  if(st){ allDue += st.due; allNew += st.fresh; reachable++; }
+  const status = st
+    ? (st.due ? `<span class="pill due">到期 ${st.due}</span>` : `<span class="pill">今天无到期</span>`)
+      + `<span class="pill new">新卡 ${st.fresh}</span>`
+    : `<span class="pill">新卡 ${d.total}</span>`;
+  const a = document.createElement('a');
+  a.className = 'card';
+  a.href = d.file;
+  a.innerHTML = `
+    <span class="bar" style="background:${d.color}"></span>
+    <span class="main">
+      <span class="name">${d.name}${d.badge ? `<em style="background:${d.color}">${d.badge}</em>` : ''}</span>
+      <span class="desc">${d.desc}</span>
+      <span class="meta">
+        <span class="pill">${total} 张</span>
+        <span class="pill">${d.chapters} 章</span>
+        ${status}
+      </span>
+    </span>
+    <span class="arrow">›</span>`;
+  grid.appendChild(a);
+});
+
+const f = document.createElement('a');
+f.className = 'card';
+f.href = FRAME.file;
+f.innerHTML = `
+  <span class="bar" style="background:${FRAME.color}"></span>
+  <span class="main">
+    <span class="name">${FRAME.name}<em style="background:${FRAME.color}">${FRAME.tag}</em></span>
+    <span class="desc">${FRAME.desc}</span>
+    <span class="meta"><span class="pill">空白</span><span class="pill">单文件</span></span>
+  </span>
+  <span class="arrow">›</span>`;
+grid.appendChild(f);
+
+if(reachable){
+  document.getElementById('today').hidden = false;
+  document.getElementById('dueN').textContent = allDue;
+  document.getElementById('newN').textContent = allNew;
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1788 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#F7F2E3">
+<title>记忆卡</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+:root{--q:#4B3A1F;--a:#2F6B4F;--tip:#8A7A66;--tipbg:#FDF8EC;--tipbar:#EFD9A8;
+--acc:#8A6A34;--accD:#6E5226;--sunD:#C9861A;--rose:#D2534E;--roseD:#A83C39;--em:#0E9464;
+--line:#E6DDC6;--line2:#D6C9AC;--tx:#2F2717;--dim:#6F6350;--dim2:#A2957C}
+body{background:linear-gradient(180deg,#FAF6EA 0%,#F0E8D4 58%,#E5DBBF 100%);background-attachment:fixed;
+color:var(--tx);font:16px/1.5 system-ui,-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+-webkit-user-select:none;user-select:none;overscroll-behavior:none;display:flex;justify-content:center}
+.wrap{width:100%;max-width:560px;height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:calc(9px + env(safe-area-inset-top)) 12px 7px}
+.brand{display:flex;flex-direction:column;gap:1px;min-width:0}
+.brand h1{margin:0;font-size:15.5px;font-weight:800;white-space:nowrap}
+.brand em{font-style:normal;font-size:10.5px;color:var(--dim2);white-space:nowrap}
+.counts{display:flex;gap:4px}
+.cbox{background:#fff;border:1px solid var(--line2);border-radius:10px;padding:4px 6px;text-align:center;min-width:40px;box-shadow:0 2px 5px rgba(92,74,40,.08)}
+.cbox span{display:block;font-size:9px;color:var(--dim)}
+.cbox b{font-size:13.5px;font-variant-numeric:tabular-nums}
+.cbox.new b{color:var(--acc)}.cbox.hot b{color:var(--rose)}.cbox.mk b{color:var(--em)}
+.gear{width:34px;height:34px;flex:0 0 auto;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--dim);font-size:16px;display:flex;align-items:center;justify-content:center}
+.gear:active{background:#F3ECDB}
+.screen{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.screen[hidden]{display:none!important}
+#scrReview,#scrCards,#scrIndex{padding:0 12px}
+.progline{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:2px 2px 8px;font-size:11.5px;color:var(--dim)}
+.progbar{flex:1 1 auto;height:6px;border-radius:4px;background:#E1D6BB;overflow:hidden}
+.progbar b{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#8A6A34,#B28E4F)}
+.cardwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding:2px 0 8px}
+.qcard{background:#fff;border:1px solid var(--line2);border-radius:20px;padding:19px 17px;box-shadow:0 6px 20px rgba(92,74,40,.10);display:flex;flex-direction:column;gap:13px;margin-bottom:auto;cursor:pointer}
+.qcard.marked{border-color:#8FD3BA;box-shadow:0 6px 20px rgba(14,148,100,.14)}
+.tagrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:#EFE8D8;color:#6B5D45}
+.tag.ghost{background:#F3ECDC;color:#9D9077;font-weight:600}
+.tag.star{letter-spacing:0;padding:3px 7px}
+.tag.code{background:#EFE8D9;color:#796B55;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;padding:3px 7px}
+.markbtn{margin-left:auto;width:30px;height:26px;border-radius:8px;flex:0 0 auto;border:1px solid var(--line2);background:#fff;color:#B4A88F;font-size:13px;display:flex;align-items:center;justify-content:center}
+.markbtn.on{background:var(--em);border-color:transparent;color:#fff;box-shadow:0 2px 6px rgba(14,148,100,.32)}
+.idxline{font-size:10.5px;color:var(--dim2);margin-top:-7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.idxline b{color:var(--dim)}
+.qtext{font-size:21px;font-weight:700;line-height:1.62;color:var(--q);word-break:break-word}
+.askhint{display:flex;align-items:center;justify-content:center;gap:7px;padding:18px 0 6px;color:var(--dim2);font-size:13px}
+.askhint i{font-style:normal;width:22px;height:22px;border-radius:50%;background:#F3ECDB;display:flex;align-items:center;justify-content:center;font-size:12px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--line2),transparent)}
+.atext{font-size:19px;line-height:1.78;color:var(--a);font-weight:600;word-break:break-word}
+.qtext sub,.qtext sup,.atext sub,.atext sup,.tipbox sub,.tipbox sup{font-size:.66em;line-height:0;font-weight:700}
+.atext b{font-weight:800;background:linear-gradient(transparent 62%,rgba(239,163,43,.3) 62%)}
+.tipbox{background:var(--tipbg);border-left:3px solid var(--tipbar);border-radius:0 10px 10px 0;padding:10px 12px;font-size:14px;line-height:1.65;color:var(--tip)}
+.tipbox u{text-decoration:none;font-weight:700;color:#8A6A3A}
+.refbox{display:flex;align-items:center;gap:6px;flex-wrap:wrap;border-top:1px dashed var(--line2);padding-top:10px}
+.refbox span{font-size:11px;color:var(--dim2);font-weight:700}
+.refchip{font:800 11px/1 ui-monospace,Menlo,Consolas,monospace;padding:5px 9px;border-radius:8px;background:#F2E9D4;color:var(--accD);border:1px solid #DECEAF}
+.gradebar{flex:0 0 auto;padding:0 0 calc(10px + env(safe-area-inset-bottom))}
+.navrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 8px}
+.navbtn{height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--dim);font:700 13px/1 inherit}
+.navbtn:active{background:#F3ECDB}
+.navbtn:disabled{color:#C0B49B;background:#FAF6EA;border-color:#E4D9C2}
+.navpos{font:800 12px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--dim2);font-variant-numeric:tabular-nums}
+.revealbtn{width:100%;height:54px;border-radius:16px;background:var(--acc);color:#fff;font:800 17px/1 inherit;letter-spacing:1px;border:0;box-shadow:0 6px 16px rgba(138,106,52,.30)}
+.revealbtn:active{background:var(--accD)}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grades.two{grid-template-columns:repeat(2,1fr)}
+.gbtn{height:58px;border-radius:16px;border:1.5px solid;font:800 16px/1.2 inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#fff}
+.gbtn small{font-size:10px;font-weight:600;opacity:.72}
+.gbtn.f{color:var(--rose);border-color:#F1C4C2;background:#FFF6F5}
+.gbtn.o{color:var(--acc);border-color:#D9C8A5;background:#FBF6E9}
+.gbtn.e{color:var(--sunD);border-color:#F3DFB4;background:#FFFCF3}
+.gbtn.sel{box-shadow:0 0 0 2px currentColor inset}
+.gradednote{display:flex;align-items:center;justify-content:center;height:44px;border-radius:13px;background:#F2F8F5;color:#5E8B78;font:800 13.5px/1 inherit;border:1px dashed #CBE4D8}
+.state{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;padding:22px}
+.state .big{font-size:44px;line-height:1}
+.state h2{margin:0;font-size:20px;font-weight:800}
+.state p{margin:0;color:var(--dim);font-size:14px;line-height:1.7;max-width:320px}
+.state .row{display:flex;gap:9px;margin-top:4px;flex-wrap:wrap;justify-content:center}
+.pbtn{height:46px;padding:0 20px;border-radius:14px;border:1.5px solid var(--line2);background:#fff;color:var(--tx);font:800 15px/1 inherit}
+.pbtn.pri{background:var(--acc);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(138,106,52,.30)}
+.pbtn:active{transform:scale(.98)}
+.donebox{background:#fff;border:1px solid var(--line2);border-radius:18px;padding:16px;display:flex;box-shadow:0 6px 18px rgba(92,74,40,.09);width:100%;max-width:330px}
+.dstat{flex:1;text-align:center;border-right:1px solid var(--line)}
+.dstat:last-child{border:0}
+.dstat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.dstat span{font-size:11px;color:var(--dim)}
+.dstat.f b{color:var(--rose)}.dstat.o b{color:var(--acc)}.dstat.e b{color:var(--sunD)}
+.searchrow{flex:0 0 auto;display:flex;gap:8px;margin-bottom:8px}
+.searchrow input{flex:1 1 auto;height:42px;border-radius:12px;border:1px solid var(--line2);background:#fff;padding:0 13px;font:15px inherit;color:var(--tx);outline:none;-webkit-user-select:text;user-select:text;min-width:0}
+.iconbtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line2);background:#fff;font-size:17px;color:var(--dim);flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.crumb{flex:0 0 auto;display:flex;align-items:center;gap:6px;margin-bottom:8px;background:#F2E9D4;border:1px solid #DECEAF;border-radius:11px;padding:8px 11px;font-size:12px;font-weight:700;color:var(--accD)}
+.crumb[hidden]{display:none!important}
+.crumb span{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crumb b{font-size:11px;color:var(--dim);padding:2px 6px;border-radius:7px;background:#fff}
+.chips{flex:0 0 auto;display:flex;gap:6px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:7px 13px;border-radius:20px;border:1px solid var(--line2);background:#fff;font-size:13px;font-weight:700;color:var(--dim);white-space:nowrap}
+.chip.on{background:var(--acc);border-color:transparent;color:#fff}
+.chip.mark{color:#0A7550;border-color:#B7E0D0}
+.chip.mark.on{background:var(--em);border-color:transparent;color:#fff}
+.listwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px}
+.litem{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:7px;display:flex;gap:10px;align-items:flex-start}
+.litem:active{background:#FBF5E6}
+.litem.marked{border-color:#A9DCC8;background:#F8FDFB}
+.ldot{width:4px;align-self:stretch;border-radius:3px;flex:0 0 auto;margin:2px 0;background:#8FA0AF}
+.lmain{flex:1 1 auto;min-width:0}
+.lq{font-size:14.5px;font-weight:700;line-height:1.5;color:var(--q);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lmeta{margin-top:4px;font-size:11px;color:var(--dim2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lflag{color:var(--em);font-weight:800}
+.lidx{color:#A99B81;font-size:10.5px}
+.lcode{color:#9B8D74;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;font-weight:800}
+.lright{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.stage{font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:#F3ECDC;color:#756850}
+.stage.new{background:#EFE6D0;color:var(--accD)}
+.stage.due{background:#FDECEB;color:var(--roseD)}
+.ldel{font-size:11px;color:#C0AEA8;padding:2px 4px;border-radius:6px}
+.more{width:100%;height:44px;border-radius:12px;border:1px dashed var(--line2);background:transparent;color:var(--dim);font:700 13px inherit;margin-bottom:10px}
+.more.go{border-style:solid;border-color:#B7E0D0;background:#F4FBF8;color:#0A7550;font-weight:800}
+.empty{text-align:center;padding:40px 10px;color:var(--dim2);font-size:14px}
+.idxwrap{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px}
+.idxsum{background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px 13px;margin-bottom:10px;font-size:12.5px;color:var(--dim);line-height:1.7}
+.idxsum b{color:var(--accD);font-weight:800}
+.idxrow{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:6px}
+.idxrow:active{background:#FBF5E6}
+.idxrow.l1{font-weight:800;font-size:15px;border-color:var(--line2)}
+.idxrow.l2{margin-left:12px;font-weight:700;font-size:14px;border-left:3px solid #DECEAF}
+.idxrow.l3{margin-left:24px;font-size:13.5px;color:var(--dim);border-left:3px solid #EFE6D0}
+.idxname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idxcnt{font-size:11.5px;font-weight:800;color:var(--acc);background:#EFE6D0;border-radius:8px;padding:3px 8px;flex:0 0 auto}
+.idxarrow{color:var(--dim2);font-size:11px;width:12px;text-align:center;flex:0 0 auto}
+.idxtip{font-size:11.5px;color:var(--dim2);line-height:1.7;padding:12px 4px;border-top:1px dashed var(--line2);margin-top:8px}
+.fab{position:absolute;right:16px;bottom:calc(74px + env(safe-area-inset-bottom));width:54px;height:54px;border-radius:50%;border:0;background:var(--acc);color:#fff;font-size:27px;font-weight:300;line-height:1;z-index:8;box-shadow:0 7px 20px rgba(138,106,52,.38);display:flex;align-items:center;justify-content:center}
+.fab[hidden]{display:none!important}
+.tabs{flex:0 0 auto;display:flex;background:#fff;border-top:1px solid var(--line2);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -3px 14px rgba(92,74,40,.07)}
+.tab{flex:1;height:56px;border:0;background:transparent;color:var(--dim2);font:700 12px/1.3 inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative}
+.tab i{font-style:normal;font-size:18px;line-height:1}
+.tab.on{color:var(--accD)}
+.tab .badge{position:absolute;top:8px;margin-left:24px;min-width:16px;height:16px;border-radius:9px;background:var(--rose);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.mask{position:fixed;inset:0;background:rgba(46,37,21,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.mask[hidden]{display:none!important}
+.sheet{width:100%;max-width:560px;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:90vh;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.sheet h3{margin:0;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:space-between}
+.sheet h3 em{font-style:normal;font-size:12px;color:var(--dim2);font-weight:600}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:700;color:var(--dim)}
+.field textarea,.field input{width:100%;border:1px solid var(--line2);border-radius:11px;padding:10px 12px;font:15px/1.6 inherit;color:var(--tx);background:#FBF7EC;outline:none;-webkit-user-select:text;user-select:text}
+.cnt{font-size:11px;color:var(--dim2);text-align:right}
+.cnt.over{color:var(--rose);font-weight:700}
+.sheet .row{display:flex;gap:8px;margin-top:2px}
+.sheet .row button{flex:1;height:46px;border-radius:13px;border:1.5px solid var(--line2);background:#fff;font:800 15px inherit;color:var(--tx)}
+.sheet .row .pri{background:var(--acc);border-color:transparent;color:#fff}
+.sheet .row .danger{color:var(--rose);border-color:#F1C4C2;background:#FFF7F6}
+.optrow{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:8px 12px;border-radius:10px;border:1.5px solid var(--line2);background:#fff;font:800 13px/1 inherit;color:var(--dim)}
+.opt.on{background:var(--acc);border-color:transparent;color:#fff}
+.opt.mk.on{background:var(--em);border-color:transparent;color:#fff}
+.idxhint{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim2)}
+.idxhint span{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idxhint b{color:var(--acc);font-weight:700}
+.note{font-size:11.5px;color:var(--dim2);line-height:1.7;background:#FAF6EA;border-radius:10px;padding:9px 11px}
+.note b{color:var(--dim);font-weight:800}
+.toast{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(86px + env(safe-area-inset-bottom));background:rgba(40,32,19,.95);color:#fff;font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:13px;z-index:60;opacity:0;transition:transform .22s,opacity .22s;pointer-events:none;max-width:88vw;text-align:center}
+.toast.show{transform:translate(-50%,0);opacity:1}
+#fatal{position:fixed;inset:0;z-index:99;background:#fff;padding:20px;font:12px/1.7 ui-monospace,Menlo,Consolas,monospace;color:#B3261E;overflow:auto;white-space:pre-wrap}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="312 记忆卡">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><h1 id="appName">记忆卡</h1><em id="hintSub">间隔复习</em></div>
+    <div class="counts">
+      <div class="cbox new"><span>新卡</span><b id="cNew">0</b></div>
+      <div class="cbox hot"><span>到期</span><b id="cDue">0</b></div>
+      <div class="cbox mk"><span>标记</span><b id="cMark">0</b></div>
+    </div>
+    <button class="gear" id="gear">⚙</button>
+  </div>
+
+  <div class="screen" id="scrReview" hidden>
+    <div class="cardwrap" id="cardwrap"></div>
+    <div class="gradebar" id="gradebar"></div>
+  </div>
+
+  <div class="screen" id="scrCards" hidden>
+    <div class="searchrow">
+      <input id="search" placeholder="搜索编号 / 问题 / 答案 / 标签" autocomplete="off">
+      <button class="iconbtn" id="btnImport">⤓</button>
+      <button class="iconbtn" id="btnExport">⤒</button>
+    </div>
+    <div class="crumb" id="crumb" hidden></div>
+    <div class="chips" id="chips"></div>
+    <div class="listwrap" id="listwrap"></div>
+  </div>
+
+  <div class="screen" id="scrIndex" hidden><div class="idxwrap" id="idxwrap"></div></div>
+
+  <button class="fab" id="fab" hidden>+</button>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="review"><i>◈</i>复习<span class="badge" id="tabBadge" hidden></span></button>
+    <button class="tab" data-tab="cards"><i>▤</i>卡片库</button>
+    <button class="tab" data-tab="index"><i>☰</i>索引</button>
+  </div>
+</div>
+
+<div class="mask" id="maskSet" hidden><div class="sheet">
+  <h3><span>设置 / 自检</span><em id="setStat"></em></h3>
+  <div class="field"><label>复习模式</label>
+    <div class="optrow" id="optMode">
+      <button class="opt" data-m="srs">间隔复习</button>
+      <button class="opt" data-m="cram">突击模式</button>
+    </div></div>
+  <div class="field"><label>每日新卡额度</label>
+    <div class="optrow" id="optNew">
+      <button class="opt" data-n="20">20</button><button class="opt" data-n="50">50</button>
+      <button class="opt" data-n="100">100</button><button class="opt" data-n="200">200</button>
+      <button class="opt" data-n="500">500</button>
+    </div></div>
+  <div class="field"><label>数据自检</label><div class="note" id="todayNote"></div></div>
+  <div class="row"><button id="setSeed">补齐题库</button><button id="setReindex">重算索引</button></div>
+  <div class="row"><button id="setDup">查重清理</button><button id="setResetAll" class="danger">重置全部进度</button></div>
+  <div class="row"><button id="setClear" class="danger">清空全部卡片</button></div>
+  <div class="row">
+    <button id="setToday">学时归零</button><button id="setResetToday">重置今日计数</button>
+    <button id="setDone" class="pri">完成</button>
+  </div>
+</div></div>
+
+<div class="mask" id="maskEdit" hidden><div class="sheet">
+  <h3><span id="edTitle">新建卡片</span><em id="edStage"></em></h3>
+  <div class="field"><label>问题</label><textarea id="edQ" rows="2" maxlength="400"></textarea><div class="cnt" id="cntQ">0 / 400</div></div>
+  <div class="field"><label>答案</label><textarea id="edA" rows="5" maxlength="2000"></textarea><div class="cnt" id="cntA">0 / 2000</div></div>
+  <div class="field"><label>易错提示（可选）</label><textarea id="edT" rows="2" maxlength="500"></textarea><div class="cnt" id="cntT">0 / 500</div></div>
+  <div class="field"><label>卡片索引</label>
+    <div class="optrow" id="edIdx1"></div><div class="optrow" id="edIdx2"></div><div class="optrow" id="edIdx3"></div>
+    <div class="idxhint"><span id="edIdxHint"></span><b id="edIdxGuess">按内容自动判断</b></div></div>
+  <div class="field"><label>标签（用 :: 分隔）</label><input id="edG"></div>
+  <div class="field"><label>编号（如 T001）</label><input id="edCode"></div>
+  <div class="field"><label>关联编号（逗号分隔）</label><input id="edRefs"></div>
+  <div class="field"><label>个人标记</label>
+    <div class="optrow" id="edMark">
+      <button class="opt" data-mk="0">无</button><button class="opt mk" data-mk="1">⚑ 已标记</button>
+    </div></div>
+  <div class="field"><label>重要度</label>
+    <div class="optrow" id="edStar">
+      <button class="opt" data-s="0">无</button><button class="opt" data-s="1">★</button>
+      <button class="opt" data-s="2">★★</button><button class="opt" data-s="3">★★★</button>
+    </div></div>
+  <div class="row">
+    <button id="edDel" class="danger" hidden>删除</button>
+    <button id="edCancel">取消</button><button id="edSave" class="pri">保存</button>
+  </div>
+</div></div>
+
+<div class="mask" id="maskImport" hidden><div class="sheet">
+  <h3><span>批量导入</span><em>每行一张卡</em></h3>
+  <div class="note">① <b>问题|答案|标签</b><br>② 表格两列直接粘（<b>问题⇥答案</b>）<br>
+  问题前写 <b>#T001</b> 保留编号；<b>★</b> 设重要度；<b>&lt;br&gt;易错：…</b> 变成提示框。</div>
+  <div class="field"><textarea id="impText" rows="9" placeholder="把卡片粘到这里……"></textarea></div>
+  <div class="row"><button id="impCancel">取消</button><button id="impOk" class="pri">导入</button></div>
+</div></div>
+
+<div class="mask" id="maskExport" hidden><div class="sheet">
+  <h3><span>导出备份</span><em id="expCount"></em></h3>
+  <div class="field"><textarea id="expText" rows="7" readonly></textarea></div>
+  <div class="row"><button id="expCopy">复制</button><button id="expFile" class="pri">下载 .json</button><button id="expClose">关闭</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   ① 内容配置区 —— 换内容只需要改这一段
+   --------------------------------------------------------------------------
+   卡片格式（SEED_SOURCE 里每行一张）：
+       问题 | 答案 | 标签
+   · 问题前写 #T001  → 编号
+   · 问题前写 ★ / ★★ / ★★★ → 重要度
+   · 答案里写 <b>重点</b> → 加粗高亮
+   · 答案里写 <br><u>易错：…</u> → 自动拆成黄色提示框
+   · 标签用 :: 分隔，例如 312::统计::ANOVA（最后一个显示为彩色标签）
+
+   每次改完内容，把下面的 seedVer 加 1，否则不会自动补进已有数据。
+   注意：内容里不要出现反引号 ` 和 ${ ，会破坏模板字符串。
+   ========================================================================== */
+
+const APP = {
+  name: '312 发展教育',        // 顶栏标题
+  sub: '间隔复习',             // 副标题前缀
+  key: 'memcard.psy312dev.v1', // 存档键名
+  cramKey: 'memcard.psy312dev.cram',
+  seedVer: 1                   // 内容版本号
+};
+
+const MAX_CARDS = 3000;
+const LIM_Q = 400, LIM_A = 2000, LIM_T = 500;
+const INTERVALS = [0,1,2,4,7,15,30,60];
+const STAGE_MAX = INTERVALS.length - 1;
+
+/* 索引第一层（固定） */
+const TOP = '心理学';
+
+/* 索引第二层：科目 */
+const SUBJECTS = ['实验心理学','心理统计','心理测量','普通心理学','发展心理学',
+                  '教育心理学','社会心理学','其他'];
+const DEFAULT_SUBJECT = '其他';
+
+/* 关键词 → 科目（从上往下匹配，先中先得） */
+const SUBJECT_RULES = [
+  [/心理统计|统计/,        '心理统计'],
+  [/心理测量|测量|信度|效度/, '心理测量'],
+  [/发展心理/,             '发展心理学'],
+  [/教育心理/,             '教育心理学'],
+  [/社会心理/,             '社会心理学'],
+  [/普通心理/,             '普通心理学'],
+  [/实验心理/,             '实验心理学']
+];
+
+/* 索引第三层：类型（从上往下匹配，先中先得；都不中则用 TYPES 最后一项） */
+const TYPES = ['核心概念','计算相关','关联知识','其他'];
+const TYPE_RULES = [
+  ['关联知识', /关系|区别|异同|联系|不同|为什么|为何|如何|怎样|影响|优点|缺点|局限|排序|属于|哪个|哪几|适用/],
+  ['计算相关', /怎么算|怎么分解|怎么计算|怎么求|如何算|求|计算|多少|几次|数目|配对数|自由度|平方和|等于|反推|推算/],
+  ['核心概念', /什么|定义|思想|含义|指什么|前提|假设|条件|要点|特征|原则|性质/]
+];
+
+/* 内置题库：格式 问题|答案|标签 */
+const SEED_SOURCE = `
+<b>#F01 ★★★ 毕生发展观（巴尔特斯）的基本观点是什么？</b>|<b>五特点：毕生性、多向性、可塑性、历史情境性、多学科性</b>；核心命题：发展是<b>获得与丧失的动态平衡</b>，<b>任何年龄都具有可塑性</b>。<br><u>易错：不等于"全程上升"，也不等于"老年只有丧失"。</u>|发展心理学::发展导论
+<b>#F02 ★★ SOC 模型（选择—优化—补偿）指什么？</b>|资源减少时：<b>选择</b>收缩目标范围 → <b>优化</b>集中投入手段 → <b>补偿</b>用替代方式弥补损失，是毕生发展观应对丧失的策略。|发展心理学::发展导论
+<b>#F03 ★★ 心理发展的一般规律有哪些？</b>|<b>顺序性</b>（头尾律由上到下、近远律中心到外周、由粗到细）；<b>连续性与阶段性统一</b>；<b>不平衡性</b>（关键期、加速期）；<b>个别差异</b>；年龄特征兼具稳定性与可变性。|发展心理学::发展导论
+<b>#F04 ★★ 遗传与环境之争有哪几种立场？现代观点是什么？</b>|遗传决定论（高尔顿）；环境决定论（华生"给我一打儿童"）；成熟势力说（格塞尔双生子爬梯）；现代<b>相互作用论</b>——基因型—环境相关三型：<b>被动型、唤起型、主动型</b>。|发展心理学::发展导论
+<b>#F05 ★★ 关键期与敏感期有何区别？</b>|关键期源于洛伦兹<b>印刻</b>，错过则不可逆；<b>敏感期</b>错过仍有补偿空间，现行教材多用敏感期。典型：语言关键期（伦内伯格）、依恋关键期。<br><u>易错：说"关键期一过完全不可弥补"是错的。</u>|发展心理学::发展导论
+<b>#F06 ★ 横断设计与纵向设计各自的优缺点？</b>|<b>横断</b>省时省力，但混淆年龄差异与<b>同辈效应</b>；<b>纵向</b>能反映个体变化，但耗时长、有练习效应与样本流失；<b>聚合交叉设计</b>兼顾二者。|发展心理学::发展导论
+<b>#F07 ★★★ 皮亚杰的适应机制（同化、顺应、平衡化）如何区分？</b>|<b>图式</b>是认知结构的基本单位；<b>同化</b>＝把新刺激纳入已有图式（量变）；<b>顺应</b>＝改造旧图式以适应新刺激（质变）；<b>平衡化</b>是发展的内在动力。|发展心理学::皮亚杰
+<b>#F08 ★★★ 皮亚杰认知发展四阶段的名称与年龄？</b>|<b>感知运动阶段 0～2 岁</b> → <b>前运算阶段 2～7 岁</b> → <b>具体运算阶段 7～11 岁</b> → <b>形式运算阶段 11 岁以后</b>。|发展心理学::皮亚杰
+<b>#F09 ★★★ 感知运动阶段的主要成就是什么？</b>|<b>客体永久性</b>（约 8～12 个月获得）、三级<b>循环反应</b>、<b>A 非 B 错误</b>、<b>延迟模仿</b>；思维依靠动作，属直觉行动思维。|发展心理学::皮亚杰
+<b>#F10 ★★★ 前运算阶段的五大特征？</b>|<b>自我中心</b>（三山实验）、<b>泛灵论</b>、<b>不守恒</b>、<b>中心化</b>、<b>不可逆</b>；另有符号/表象功能出现、集体独白。|发展心理学::皮亚杰
+<b>#F11 ★★★ 具体运算阶段的标志是什么？</b>|<b>守恒</b>与<b>去中心化</b>、<b>可逆性</b>、<b>分类、序列化、传递性</b>；但思维仍<b>离不开具体事物</b>。<br><u>易错：能守恒不等于能假设演绎，具体运算≠抽象逻辑。</u>|发展心理学::皮亚杰
+<b>#F12 ★★★ 形式运算阶段的标志是什么？</b>|<b>假设演绎推理</b>、<b>命题运算</b>（能对命题本身进行运算）、抽象与系统性、理想主义、元认知；思维可脱离具体事物。|发展心理学::皮亚杰
+<b>#F13 ★★ 如何评价皮亚杰的理论？</b>|贡献：首个系统的阶段理论，机制解释清晰。局限：<b>低估儿童能力</b>（现代研究显示成就提前）、阶段跨文化一致性存疑、忽视<b>社会文化、教育、语言</b>的作用、低估<b>领域特殊性</b>。|发展心理学::皮亚杰
+<b>#F14 ★★★ 维果茨基理论的三个核心概念？</b>|<b>高级心理机能的社会起源</b>、<b>心理工具（符号）中介</b>、<b>内化</b>（外部社会言语 → 内部言语）。|发展心理学::维果茨基
+<b>#F15 ★★★ 什么是最近发展区？它对教学意味着什么？</b>|<b>ZPD＝现有发展水平与潜在发展水平之间的距离</b>；教学应<b>走在发展前面</b>，由此引出<b>支架式教学</b>（布鲁纳）。<br><u>易错：ZPD 指"跳一跳够得着"，不是"越难越好"。</u>|发展心理学::维果茨基
+<b>#F16 ★★★ 皮亚杰与维果茨基对自我中心言语的解释有何不同？</b>|皮亚杰：认知不成熟的产物，最终<b>消失</b>；维果茨基：社会言语<b>内化</b>的过渡形式，最终转为<b>内部言语</b>。|发展心理学::维果茨基
+<b>#F17 ★★★ 系统比较皮亚杰与维果茨基的理论？</b>|①来源：<b>个体建构 vs 社会建构</b>；②机制：<b>平衡化 vs 内化</b>；③语言与思维：思维决定语言 vs 语言塑造思维；④教育：不宜超前教 vs 教学走在发展前面。|发展心理学::维果茨基
+<b>#F18 ★★ 信息加工取向如何看待认知发展？</b>|关注<b>加工速度、工作记忆容量、策略、元认知</b>；主张发展是<b>连续的量的变化</b>，反对阶段性质变；代表：西格勒<b>重叠波理论</b>、凯斯资源有限说。|发展心理学::其他发展理论
+<b>#F19 ★★ 布朗芬布伦纳生态系统理论的五个层次？</b>|<b>微系统 → 中间系统 → 外层系统 → 宏观系统 → 时间系统</b>。<br><u>易错：微系统指与个体直接互动的环境（家庭、同伴、学校）；外层系统个体并不直接参与。</u>|发展心理学::其他发展理论
+<b>#F20 ★★★ 埃里克森八阶段的名称与年龄？</b>|信任—不信任(0～1.5)｜自主—羞怯(1.5～3)｜主动—内疚(3～6)｜勤奋—自卑(6～12)｜同一性—角色混乱(12～18)｜亲密—孤独(18～35)｜繁殖—停滞(35～60)｜自我整合—绝望(60+)。<br><u>易错：每期危机是"对立统一"而非有或无，解决成功则形成相应品质。</u>|发展心理学::其他发展理论
+<b>#F21 ★★ 语言发展的三大理论派别？</b>|<b>强化说</b>（斯金纳）、<b>先天论 / LAD</b>（乔姆斯基）、<b>交互作用论</b>（先天与环境的交互，主流观点）。|发展心理学::语言与心理理论
+<b>#F22 ★★ 语言发展的关键节点有哪些？</b>|前言语阶段（反射性发声 → 咿呀语）→ <b>单词句约 1 岁</b>（一词多义）→ <b>双词句 / 电报句约 1.5 岁</b>→ <b>词汇爆炸 18～24 个月</b>；3 岁约 1000 词，6 岁约 3000～4000 词。<br><u>易错：理解先于产生，"听得懂"早于"说得出"。</u>|发展心理学::语言与心理理论
+<b>#F23 ★★ 心理理论及其经典测查任务是什么？</b>|<b>错误信念任务约 4 岁通过</b>；发展出愿望—信念推理；<b>自闭症儿童 ToM 存在缺陷</b>。|发展心理学::语言与心理理论
+<b>#F24 ★★★ 皮亚杰的道德发展两阶段？</b>|<b>他律道德（道德实在论，约 5～10 岁）</b>：重结果不重动机、规则不可变；<b>自律道德（道德相对论，10～11 岁后）</b>：重动机、规则可协商。|发展心理学::道德发展
+<b>#F25 ★★★ 科尔伯格三水平六阶段的内容？</b>|前习俗（<b>惩罚服从、朴素利己</b>）→ 习俗（<b>好孩子取向、维护社会秩序</b>）→ 后习俗（<b>社会契约、普遍伦理</b>）；方法：道德两难故事；教育原则：<b>"+1 阶段"</b>与公正团体。|发展心理学::道德发展
+<b>#F26 ★★ 吉利根与特里尔对科尔伯格的补充？</b>|吉利根：科尔伯格偏重<b>公正伦理</b>，忽视<b>关怀伦理</b>（女性取向）；特里尔<b>社会领域理论</b>：区分道德、社会习俗与个人事务。|发展心理学::道德发展
+<b>#F27 ★★ 婴儿动作发展的规律？</b>|<b>头尾律</b>（由上到下）、<b>近远律</b>（中心到外周）、整体到分化、无意到有意、由粗到细。|发展心理学::婴儿期
+<b>#F28 ★★★ 视觉悬崖实验说明了什么？</b>|吉布森：<b>6 个月</b>婴儿已具备<b>深度知觉</b>；说明<b>知觉发展早于动作发展</b>。|发展心理学::婴儿期
+<b>#F29 ★★ 婴儿记忆有哪些特点？</b>|<b>再认先于回忆</b>；9 个月出现<b>延迟模仿</b>；存在<b>婴儿期记忆缺失</b>（缺乏自我与语言编码）。|发展心理学::婴儿期
+<b>#F30 ★★ 托马斯—切斯的气质三类型及比例？</b>|<b>容易型约 40%</b>、<b>困难型约 10%</b>、<b>迟缓型约 15%</b>，其余为混合型；养育要讲究<b>拟合优度</b>。|发展心理学::婴儿期
+<b>#F31 ★★ 鲍尔比依恋发展的四阶段？</b>|无差别反应(0～3 月) → 有差别反应(3～6 月) → <b>特殊情感联结</b>(6 月～2 岁，分离焦虑高峰) → <b>互惠关系</b>(2 岁后)。|发展心理学::婴儿期
+<b>#F32 ★★★ 安斯沃斯依恋四类型的特征？</b>|<b>安全型(约 65%)</b>以母亲为安全基地、重聚易被安抚；<b>回避型(约 20%)</b>对在场与离开均淡漠；<b>反抗型(约 10%)</b>既求接触又抗拒；<b>组织混乱型(约 5%)</b>行为矛盾无组织。<br><u>易错：分类依据是陌生情境法中的分离与重聚反应，不是亲子亲密度打分。</u>|发展心理学::婴儿期
+<b>#F33 ★★★ 哈洛恒河猴实验的结论？</b>|<b>接触安慰 &gt; 喂食</b>，依恋并非"喂食的副产品"，由此推翻<b>碗柜理论</b>。|发展心理学::婴儿期
+<b>#F34 ★★★ 婴儿期情绪与自我的里程碑有哪些？</b>|社会性微笑<b>2～3 月</b>；陌生人焦虑<b>6～8 月</b>；分离焦虑<b>8 月～1.5/2 岁高峰</b>；<b>点红实验 18～24 月</b>出现镜像自我。<br><u>易错：点红实验测的是镜像自我（自我再认），不是依恋。</u>|发展心理学::婴儿期
+<b>#F35 ★★ 帕滕的游戏社会性六级水平？</b>|<b>无所事事 → 旁观 → 单独 → 平行 → 联合 → 合作</b>。|发展心理学::幼儿期
+<b>#F36 ★★ 皮亚杰按认知水平把游戏分为哪几类？</b>|<b>练习性（机能性）→ 象征性 → 规则性</b>；游戏的本质是<b>同化大于顺应</b>。|发展心理学::幼儿期
+<b>#F37 ★★ 幼儿期认知的特点？</b>|<b>具体形象思维</b>为主、抽象逻辑思维开始萌芽；自我中心、泛灵论、不守恒；记忆以无意、机械、形象记忆为主，<b>复述策略 3～4 岁出现</b>。|发展心理学::幼儿期
+<b>#F38 ★★ 幼儿性别认知的发展顺序？</b>|科尔伯格：<b>性别认同 2～3 岁 → 性别稳定性 4～5 岁 → 性别恒常性 5～7 岁</b>；另有<b>第一反抗期 3～4 岁</b>。<br><u>易错：恒常性最难，指"知道性别不随发型、服装等外表改变"。</u>|发展心理学::幼儿期
+<b>#F39 ★★ 童年期有哪些主要变化？</b>|<b>学习成为主导活动</b>；思维由具体形象向抽象逻辑过渡，<b>小学四年级（10～11 岁）是关键转折</b>；<b>元认知</b>出现，道德由他律转自律。|发展心理学::童年与青少年
+<b>#F40 ★★★ 塞尔曼观点采择的五阶段？</b>|<b>自我中心(3～6) → 社会信息(6～8) → 自我反省(8～10) → 相互观点采择(10～12) → 社会习俗系统(12+)</b>。|发展心理学::童年与青少年
+<b>#F41 ★★★ 塞尔曼友谊发展的五阶段？</b>|<b>暂时性游戏伙伴 → 单向帮助 → 双向合作 → 亲密共享 → 自主共存</b>。|发展心理学::童年与青少年
+<b>#F42 ★★★ 青少年自我中心有哪些表现？</b>|<b>假想观众</b>（高估他人对自己的关注）＋<b>个人神话</b>（自认独特、无所不能）。<br><u>易错：与幼儿自我中心辨析——幼儿是"不能区分"自己与他人的视角，青少年是"过度关注"自我。</u>|发展心理学::童年与青少年
+<b>#F43 ★★★ 玛西亚的同一性四状态？</b>|由"探索"与"承诺"两维划分：<b>同一性获得</b>（探索后承诺）、<b>延缓</b>（探索中未承诺）、<b>早闭</b>（未探索即承诺）、<b>扩散</b>（无探索无承诺）。|发展心理学::童年与青少年
+<b>#F44 ★★ 成年三期的主导任务分别是什么？</b>|成年初期：<b>亲密 vs 孤独</b>、爱情三角（激情、亲密、承诺）、职业探索；成年中期：<b>繁殖 vs 停滞</b>、"三明治一代"；成年晚期：<b>自我整合 vs 绝望</b>、退休与丧偶适应。<br><u>易错：中年危机证据有限，并非普遍必然现象。</u>|发展心理学::成年与老年
+<b>#F45 ★★ 老年心理社会老化的四种理论？</b>|<b>离脱理论</b>、<b>活动理论</b>、<b>连续性理论</b>、<b>社会情绪选择理论</b>（卡斯滕森：未来时间有限 → 优先情绪意义目标）。|发展心理学::成年与老年
+<b>#F46 ★★★ 老年期智力如何变化？</b>|卡特尔：<b>流体智力</b>青年达峰后下降，<b>晶体智力</b>稳定或上升；巴尔特斯：<b>可塑性仍存在</b>；<b>加工速度、工作记忆、抑制功能</b>下降；智慧见柏林智慧模型；词汇量不随年龄明显衰退。<br><u>易错：老年≠全面衰退，晶体智力与词汇是"保值项"。</u>|发展心理学::成年与老年
+<b>#F47 ★★ 库布勒—罗斯临终五阶段？</b>|<b>否认 → 愤怒 → 讨价还价 → 抑郁 → 接受</b>。|发展心理学::成年与老年
+<b>#J01 ★ 教育心理学独立的标志是什么？其五要素有哪些？</b>|<b>1903 年桑代克《教育心理学》</b>标志其独立；五要素：<b>学生、教师、教学内容、教学媒体、教学环境</b>。|教育心理学::概述
+<b>#J02 ★★ 经典条件作用的基本现象有哪些？</b>|US / CS / CR；<b>获得、消退、自发恢复、泛化、分化</b>、高级条件作用。<br><u>易错：学校恐惧症是经典条件作用形成的情绪反应。</u>|教育心理学::行为主义
+<b>#J03 ★★★ 桑代克试误说的三大律？</b>|<b>准备律、练习律、效果律</b>；学习＝刺激与反应的联结；启示：循序渐进、及时反馈、慎用惩罚。|教育心理学::行为主义
+<b>#J04 ★★★ 正强化、负强化、惩罚、消退如何区分？</b>|<b>正强化</b>给愉快刺激→行为↑；<b>负强化</b>撤除厌恶刺激→行为↑；<b>惩罚</b>使行为↓；<b>消退</b>不再强化→行为消失。<br><u>易错：负强化不是惩罚，二者方向相反（前者增加行为，后者减少行为）。</u>|教育心理学::行为主义
+<b>#J05 ★★ 强化程式有哪些？哪种最抗消退？</b>|连续强化；部分强化分<b>固定时距、可变时距、固定比率、可变比率</b>；<b>可变比率抗消退最强</b>（如赌博）。|教育心理学::行为主义
+<b>#J06 ★★ 斯金纳程序教学的五原则？</b>|<b>小步子、积极反应、及时反馈、自定步速、低错误率</b>。|教育心理学::行为主义
+<b>#J07 ★★★ 班杜拉观察学习的四过程与三种强化？</b>|<b>注意 → 保持 → 动作再现 → 动机</b>；三种强化：<b>直接强化、替代强化、自我强化</b>；启示：同伴榜样最有效。|教育心理学::认知学习理论
+<b>#J08 ★★ 什么是交互决定论？</b>|<b>个体（认知）、行为、环境</b>三者相互影响（三元交互）；学习可在无强化条件下通过观察发生。<br><u>易错：并非"环境单向决定行为"。</u>|教育心理学::认知学习理论
+<b>#J09 ★ 苛勒顿悟说与托尔曼符号学习论的要点？</b>|苛勒（猩猩取香蕉）：学习是对情境关系的<b>整体把握（顿悟）</b>；托尔曼：<b>目的行为、认知地图、潜伏学习</b>——<b>强化不是学习的必要条件</b>。|教育心理学::认知学习理论
+<b>#J10 ★★★ 布鲁纳认知结构学习论的核心主张？</b>|<b>学科基本结构、发现学习、三种表征（动作—映像—符号）、编码系统、直觉思维、内在动机</b>；评价：费时，对基础薄弱学生不利。|教育心理学::认知学习理论
+<b>#J11 ★★★ 奥苏贝尔有意义学习的三个条件？</b>|①材料具<b>逻辑意义</b>；②学习者具<b>有意义学习心向</b>；③认知结构中有<b>同化观念</b>；判断标准为<b>实质性、非人为</b>的联系。<br><u>易错：接受学习≠机械学习，发现学习≠有意义学习。</u>|教育心理学::有意义学习与建构
+<b>#J12 ★★★ 奥苏贝尔的三种同化模式与先行组织者？</b>|同化模式：<b>下位（类属）、上位（总括）、并列结合</b>；<b>先行组织者</b>分陈述性与比较性，作用是提供固着点、促进迁移。|教育心理学::有意义学习与建构
+<b>#J13 ★★ 建构主义的核心观点与教学模式？</b>|知识由学习者<b>主动建构</b>；四要素<b>情境、协作、会话、意义建构</b>；四派：激进、社会、社会文化（维果茨基）、信息加工；模式：<b>支架式、抛锚式、随机进入、合作学习</b>。|教育心理学::有意义学习与建构
+<b>#J14 ★★ 罗杰斯人本主义的学习观？</b>|<b>学生中心、非指导性教学、无条件积极关注、自我实现</b>；有意义学习四特点：全人参与、自我发起、渗透性、自我评价。<br><u>易错：罗杰斯强调情感与师生关系，而非技术。</u>|教育心理学::有意义学习与建构
+<b>#J15 ★★ 学习动机的构成与奥苏贝尔的三种内驱力？</b>|学习动机＝<b>学习需要＋学习期待</b>（推力与拉力）；三种内驱力：<b>认知内驱力（最稳定、最重要）、自我提高内驱力、附属内驱力</b>。|教育心理学::学习动机
+<b>#J16 ★★ 什么是德西效应（过度理由效应）？</b>|过度使用外部奖励会<b>削弱原有内部动机</b>；启示：慎用奖励，多用激发求知欲与自主支持。|教育心理学::学习动机
+<b>#J17 ★★ 马斯洛需要层次理论与学习动机的关系？</b>|生理 → 安全 → 归属 → 尊重 → 自我实现；分<b>缺失需要（前四层）</b>与<b>成长需要（自我实现）</b>；先满足缺失需要，学习动机才易激发。|教育心理学::学习动机
+<b>#J18 ★★★ 阿特金森的成就动机模型？</b>|<b>Ta＝Ts－Taf</b>（趋向成功的倾向－避免失败的倾向）；任务<b>难度 50%</b>时动机最强；高成就者选中等难度，怕失败者选极易或极难；麦克利兰用 <b>TAT</b> 测 nAch。|教育心理学::学习动机
+<b>#J19 ★★★ 韦纳归因理论的四因素与三维度？</b>|三维度：<b>内部—外部、稳定—不稳定、可控—不可控</b>；四因素：<b>能力</b>（内部·稳定·不可控）、<b>努力</b>（内部·不稳定·可控）、<b>任务难度</b>（外部·稳定·不可控）、<b>运气</b>（外部·不稳定·不可控）。<br><u>易错：四因素中只有"努力"兼具内部与可控，故最应引导努力归因。</u>|教育心理学::学习动机
+<b>#J20 ★★ 习得性无助在归因上如何解释？</b>|塞利格曼：把失败归为<b>内部、稳定、不可控</b>（能力不足）→ 产生无助与动机缺失；干预关键是改为<b>努力与策略不足</b>的归因。|教育心理学::学习动机
+<b>#J21 ★★★ 自我效能的四个来源？与自尊如何区别？</b>|来源：<b>直接经验（最有力）、替代经验、言语说服、情绪唤醒</b>；作用：影响任务选择、努力程度、坚持性与情绪。<br><u>易错：自我效能是"能否完成某任务"的能力判断，自尊是"自我价值"评价，结果期望是"做了会不会有结果"。</u>|教育心理学::学习动机
+<b>#J22 ★★ 科温顿自我价值理论的四象限？</b>|核心：学生为<b>维护自我价值</b>而<b>逃避失败</b>；四类：<b>高驱高避</b>（过度努力）、<b>低驱低避</b>（失败接受者）、<b>高驱低避</b>（成功定向）、<b>低驱高避</b>（避免失败）；对策：成功体验、减少过度竞争。|教育心理学::学习动机
+<b>#J23 ★★ 掌握目标与表现目标、能力增长观与实体观？</b>|<b>掌握目标</b>关注能力增长，<b>表现目标</b>关注证明自己；德韦克：<b>能力增长观</b>者更愿挑战，<b>实体观</b>者易放弃 → 应<b>表扬努力而非智力</b>。|教育心理学::学习动机
+<b>#J24 ★★ 自我决定理论的三种基本需要？</b>|<b>自主、胜任、关系</b>；满足则内在动机增强；启示：给选择权、合理反馈、营造归属感。|教育心理学::学习动机
+<b>#J25 ★★★ 如何培养学生的学习动机？（综合题）</b>|①明确目标＋及时反馈；②创设问题情境激发求知欲；③<b>努力归因训练</b>；④提高<b>自我效能</b>（小步子成功、榜样示范）；⑤合理竞争与合作；⑥满足<b>自主需要</b>，给选择权；⑦表扬努力与策略；⑧难度适中（50%）、利用原有兴趣迁移。|教育心理学::学习动机
+<b>#J26 ★ 学习迁移如何分类？</b>|正 / 负、顺向 / 逆向、水平 / 垂直、近 / 远、一般 / 具体。|教育心理学::学习迁移
+<b>#J27 ★★★ 迁移理论的六种观点？</b>|<b>形式训练说</b>（训练官能，已被否定）→ <b>共同要素说</b>（桑代克、伍德沃斯）→ <b>概括化理论</b>（贾德水下打靶：靠原理概括）→ <b>关系转换说</b>（苛勒：靠关系领悟）→ <b>认知结构迁移</b>（奥苏贝尔：可利用性、可辨别性、稳定性）→ <b>产生式迁移</b>（安德森）。<br><u>易错：贾德的关键是"概括"，不是"共同要素"，二者常被互换设错。</u>|教育心理学::学习迁移
+<b>#J28 ★★ 教学中如何促进迁移？</b>|精选教材、合理编排内容、教<b>原理与方法</b>、创设相似情境、使用<b>先行组织者</b>、加强练习与反馈、培养元认知。|教育心理学::学习迁移
+<b>#J29 ★★ 陈述性知识与程序性知识的区别？</b>|<b>陈述性</b>：是什么，可用言语陈述，表征为命题网络/图式；<b>程序性</b>：怎么做，表征为<b>产生式</b>；二者可相互转化。知识直观三形式：实物、模象、言语直观。|教育心理学::知识与技能
+<b>#J30 ★★ 概念形成与概念同化有何不同？</b>|<b>概念形成</b>：归纳，从实例到规则（年幼儿童为主）；<b>概念同化</b>：演绎，用已有观念理解新概念（奥苏贝尔）；错误概念转变靠<b>引发认知冲突</b>与类比。|教育心理学::知识与技能
+<b>#J31 ★★★ 动作技能形成的三阶段？</b>|菲茨—波斯纳：<b>认知阶段 → 联系形成阶段 → 自动化阶段</b>；练习中出现<b>高原现象</b>；有效条件：示范、练习、反馈、<b>过度学习</b>。<br><u>易错：高原现象是暂时停滞而非能力上限，可突破。</u>|教育心理学::知识与技能
+<b>#J32 ★★ 冯忠良的心智技能三阶段？</b>|<b>原型定向 → 原型操作 → 原型内化</b>。|教育心理学::知识与技能
+<b>#J33 ★★★ 学习策略分为哪三大类？</b>|<b>认知策略</b>：复述、精加工、组织；<b>元认知策略</b>：计划、监控、调节；<b>资源管理策略</b>：时间、环境、努力、他人支持。<br><u>易错：元认知策略管"计划与监控"，不是具体记忆方法。</u>|教育心理学::策略与创造性
+<b>#J34 ★★ 问题解决的策略与影响因素？</b>|策略：<b>算法</b>（保证正确但费时）vs <b>启发式</b>（手段—目的分析、逆向搜索、爬山法）；影响因素：知识经验、<b>定势与功能固着</b>、动机强度（耶克斯—多德森：<b>中等动机最佳</b>）、问题表征、原型启发。|教育心理学::策略与创造性
+<b>#J35 ★★★ 创造性的三特性与头脑风暴四原则？</b>|吉尔福特发散思维：<b>流畅性、变通性、独创性</b>；头脑风暴：<b>延迟评判、自由想象、多多益善、组合改进</b>。|教育心理学::策略与创造性
+<b>#J36 ★★★ 凯尔曼态度与品德形成三阶段？</b>|<b>依从 → 认同 → 内化</b>；品德心理结构：<b>道德认识、道德情感、道德意志、道德行为</b>。|教育心理学::态度品德与教师
+<b>#J37 ★★ 布卢姆与加涅的教学目标分类？</b>|布卢姆认知六级：<b>知识、领会、应用、分析、综合、评价</b>（另有情感、动作技能领域）；加涅五类学习结果：<b>言语信息、智慧技能、认知策略、态度、动作技能</b>。|教育心理学::态度品德与教师
+<b>#J38 ★★ 教师成长阶段与罗森塔尔效应？</b>|福勒与布朗：<b>关注生存 → 关注情境 → 关注学生</b>；罗森塔尔效应（皮格马利翁）：教师期望经<b>气氛、反馈、输入、输出</b>传递，形成自我实现预言。|教育心理学::态度品德与教师
+`;
+
+/* ==========================================================================
+   ② 以下是引擎，正常情况下不用改
+   ========================================================================== */
+
+const D = id => document.getElementById(id);
+const DAY = 86400000;
+const KEY = APP.key, CRAM_KEY = APP.cramKey;
+
+const now = () => Date.now();
+const pad = n => String(n).padStart(2,'0');
+function todayKey(t){ t = t || now(); const d = new Date(t);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function endOfToday(t){ t = t || now(); const d = new Date(t);
+  return new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999).getTime(); }
+const uid = () => 'c'+now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+function mmss(sec){ sec = Math.max(0, Math.floor(sec||0));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return h ? h+':'+pad(m)+':'+pad(s) : m+':'+pad(s); }
+
+/* 反转义（最多四层） */
+function unesc(s){
+  s = String(s||'');
+  for (let i=0;i<4;i++){
+    const t = s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+               .replace(/&#39;/g,"'").replace(/&nbsp;/g,' ').replace(/&amp;/g,'&');
+    if (t === s) break;
+    s = t;
+  }
+  return s;
+}
+/* 清洗行内 HTML：只保留 b/i/u/br */
+function cleanInline(html){
+  const src = unesc(html); let out = '';
+  const re = /<\/?([a-zA-Z]+)[^>]*>|([^<]+)/g;
+  const allow = {b:1,strong:1,i:1,em:1,u:1,sub:1,sup:1}; let m;
+  while ((m = re.exec(src))){
+    if (m[2] !== undefined){ out += esc(m[2]); continue; }
+    const tag = m[1].toLowerCase(), closing = m[0][1] === '/';
+    if (tag === 'br'){ if (!closing) out += '<br>'; continue; }
+    if (!allow[tag]) continue;
+    const t = tag === 'strong' ? 'b' : tag === 'em' ? 'i' : tag;
+    out += closing ? '</'+t+'>' : '<'+t+'>';
+  }
+  return out.replace(/<b>\s+/g,'<b>').replace(/\s+<\/b>/g,'</b>').replace(/(<br>\s*)+$/,'').trim();
+}
+/* 取纯文本 */
+function plain(h){
+  let s = String(h||'');
+  for (let i=0;i<4;i++){
+    const t = unesc(s.replace(/<[^>]*>/g,''));
+    if (t === s) break;
+    s = t;
+  }
+  return s.trim();
+}
+/* 判重用的归一化键：只留中英文数字 */
+function key(h){
+  return plain(h).replace(/\s+/g,'').replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g,'').toLowerCase();
+}
+function extractStar(q){
+  const m = String(q).match(/★+/);
+  return { star: m ? Math.min(3, m[0].length) : 0, q: String(q).replace(/★+/g,'') };
+}
+function extractCode(q){
+  const m = String(q).match(/^\s*#\s*([A-Za-z0-9\-]{1,12})\s*/);
+  return m ? { code: m[1], q: String(q).slice(m[0].length) } : { code:'', q:String(q) };
+}
+
+/* 索引推断 */
+function guessIndex(q, a, tags){
+  const ts = (tags||[]).join('/');
+  const qT = plain(q);
+  let subj = '';
+  for (const r of SUBJECT_RULES) if (r[0].test(ts)){ subj = r[1]; break; }
+  if (!subj) for (const r of SUBJECT_RULES) if (r[0].test(qT)){ subj = r[1]; break; }
+  if (!subj) subj = DEFAULT_SUBJECT;
+  let type = TYPES[TYPES.length-1];
+  for (const r of TYPE_RULES) if (r[1].test(qT)){ type = r[0]; break; }
+  return [TOP, subj, type];
+}
+
+/* 章节索引：有标签时用最后一个标签作第三层 */
+function chapterIndex(q, a, tags){
+  const g = guessIndex(q, a, tags);
+  if (Array.isArray(tags) && tags.length) g[2] = tags[tags.length-1];
+  return g;
+}
+
+/* 标签配色：按名字自动分配，无需配置 */
+const PALETTE = [
+  ['#EFEBFB','#6A55BE'],['#E4F1FA','#1E7EAE'],['#FCE9F1','#B84A7E'],['#FDF1DC','#B47A1B'],
+  ['#E7F0FB','#2E6BA8'],['#EAF6EE','#3E8A5B'],['#E6F4F6','#1B7A8C'],['#E2F1ED','#2A7A66'],
+  ['#E9F3E3','#4A7A36'],['#E0EFF2','#1E6B78'],['#FBE7E3','#AC3B24'],['#EEEAF9','#574AA0'],
+  ['#F8F1DE','#8A6420'],['#FDEDEC','#B85450']
+];
+function lastTag(c){
+  return (c.tags && c.tags.length) ? c.tags[c.tags.length-1] : '';
+}
+function tagHash(t){
+  let h = 0; const s = String(t||'');
+  for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+  return h % PALETTE.length;
+}
+function tagColor(t){ return PALETTE[tagHash(t)][1]; }
+function tagStyle(t){ const p = PALETTE[tagHash(t)]; return 'background:'+p[0]+';color:'+p[1]; }
+const STAR_STYLE = { 3:'background:#FDECE9;color:#B3261E',
+                     2:'background:#FDF2DF;color:#A9620C',
+                     1:'background:#E8EFF7;color:#2C5A87' };
+
+/* 状态 */
+let state = { cards:[], seeded:false, seedVer:0, idxVer:0, codeVer:0,
+  settings:{ dailyNew:100, mode:'srs' },
+  today:{ date:todayKey(), newCount:0, reviewed:0, seconds:0 } };
+
+function ensureToday(){
+  const k = todayKey();
+  if (!state.today || state.today.date !== k)
+    state.today = { date:k, newCount:0, reviewed:0, seconds:0 };
+  if (!Number.isFinite(state.today.seconds)) state.today.seconds = 0;
+}
+function sanitizeCard(o){
+  if (!o || typeof o.q !== 'string' || typeof o.a !== 'string') return null;
+  const q = cleanInline(String(o.q).slice(0,LIM_Q));
+  const a = cleanInline(String(o.a).slice(0,LIM_A));
+  if (!plain(q) || !plain(a)) return null;
+  let idx = null;
+  if (Array.isArray(o.idx) && o.idx.length === 3) idx = o.idx.map(x => String(x).slice(0,20));
+  return {
+    id: (typeof o.id === 'string' && o.id) ? o.id : uid(),
+    q:q, a:a, tip: cleanInline(String(o.tip||'').slice(0,LIM_T)),
+    code: typeof o.code === 'string' ? o.code.slice(0,12) : '',
+    refs: Array.isArray(o.refs) ? o.refs.slice(0,6).map(x => String(x).slice(0,12)) : [],
+    tags: Array.isArray(o.tags) ? o.tags.slice(0,8).map(x => String(x).slice(0,24)) : [],
+    star: Number.isInteger(o.star) ? clamp(o.star,0,3) : 0,
+    mark: !!o.mark,
+    idx: idx, idxAuto: !!o.idxAuto,
+    stage: Number.isInteger(o.stage) ? clamp(o.stage,0,STAGE_MAX) : 0,
+    due: Number.isFinite(o.due) ? o.due : 0,
+    reps: Number.isFinite(o.reps) ? Math.max(0,Math.floor(o.reps)) : 0,
+    lapses: Number.isFinite(o.lapses) ? Math.max(0,Math.floor(o.lapses)) : 0,
+    created: Number.isFinite(o.created) ? o.created : now(),
+    lastAt: Number.isFinite(o.lastAt) ? o.lastAt : 0
+  };
+}
+function normalizeAll(){
+  let n = 0;
+  for (const c of state.cards){
+    const q = cleanInline(c.q), a = cleanInline(c.a), t = cleanInline(c.tip);
+    if (q !== c.q || a !== c.a || t !== c.tip){ c.q=q; c.a=a; c.tip=t; n++; }
+  }
+  return n;
+}
+
+/* 解析题库文本 */
+function parseSource(text, autoCode){
+  const out = [];
+  const lines = String(text).split(/\r?\n/);
+  let seq = 0;
+  for (let i = 0; i < lines.length; i++){
+    const line = lines[i].trim();
+    if (!line || /^(<br\s*\/?>|\/\/)$/i.test(line)) continue;
+    let qRaw, aRaw, meta = '';
+    if (line.indexOf('|') > -1){
+      const parts = line.split('|');
+      if (parts.length >= 3 && /::/.test(parts[parts.length-1])) meta = parts.pop();
+      qRaw = parts[0] || ''; aRaw = parts.slice(1).join('|');
+    } else if (line.indexOf('\t') > -1){
+      const parts = line.split('\t');
+      qRaw = parts[0]; aRaw = parts[1] || ''; if (parts[2]) meta = parts[2];
+    } else continue;
+
+    const st = extractStar(qRaw);
+    const aClean = cleanInline(aRaw);
+    const segs = aClean.split(/<br\s*\/?>/i);
+    const main = [], tip = [];
+    segs.forEach((s,k) => {
+      if (k > 0 && /^\s*(易错|注意|提示|误区|考点|辨析)/.test(plain(s))) tip.push(s);
+      else main.push(s);
+    });
+    const tags = meta ? meta.split('::').map(x => x.trim()).filter(Boolean) : [];
+    const cd = extractCode(plain(st.q));
+    let qNoCode = st.q;
+    if (cd.code){
+      const at = qNoCode.indexOf('#' + cd.code);
+      if (at > -1) qNoCode = qNoCode.slice(0, at) + qNoCode.slice(at + cd.code.length + 1);
+    }
+    let qc = cleanInline(qNoCode);
+    seq++;
+    const aa = main.join('<br>');
+    const c = sanitizeCard({
+      q: qc, a: aa, tip: tip.join('<br>'), tags: tags, star: st.star,
+      code: autoCode ? ('T'+String(seq).padStart(3,'0')) : cd.code,
+      idx: chapterIndex(qc, aa, tags), idxAuto: true
+    });
+    if (c) out.push(c);
+  }
+  return { cards: out };
+}
+
+let seedCache = null;
+function seedParsed(){
+  if (seedCache) return seedCache;
+  seedCache = parseSource(SEED_SOURCE, false);
+  return seedCache;
+}
+
+/* 存储 */
+let saveTimer = null, saveDirty = false;
+function save(){ saveDirty = true; if (!saveTimer) saveTimer = setTimeout(flushSave, 400); }
+function flushSave(){
+  clearTimeout(saveTimer); saveTimer = null;
+  if (!saveDirty) return;
+  saveDirty = false;
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ v:1, cards:state.cards, seeded:state.seeded,
+      seedVer:state.seedVer, idxVer:state.idxVer, codeVer:state.codeVer,
+      settings:state.settings, today:state.today }));
+  } catch(e){ toast('保存失败：空间不足，请先导出备份'); }
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.cards)) return false;
+    const arr = [];
+    for (const it of o.cards){ const c = sanitizeCard(it); if (c) arr.push(c); }
+    if (!arr.length && !o.seeded) return false;
+    state.cards = arr;
+    state.seeded = !!o.seeded;
+    state.seedVer = Number(o.seedVer) || 0;
+    state.idxVer = Number(o.idxVer) || 0;
+    state.codeVer = Number(o.codeVer) || 0;
+    const st = o.settings || {};
+    state.settings = { dailyNew: clamp(Number(st.dailyNew) || 100, 0, 1000),
+      mode: st.mode === 'cram' ? 'cram' : 'srs' };
+    if (o.today && o.today.date === todayKey()){
+      state.today = { date:o.today.date, newCount:Number(o.today.newCount)||0,
+        reviewed:Number(o.today.reviewed)||0, seconds:Number(o.today.seconds)||0 };
+    }
+    return true;
+  } catch(e){ return false; }
+}
+function mergeSeed(){
+  const p = seedParsed();
+  const have = new Set(state.cards.map(c => key(c.q)));
+  let added = 0;
+  for (const c of p.cards){
+    const k = key(c.q);
+    if (!k || have.has(k)) continue;
+    if (state.cards.length >= MAX_CARDS) break;
+    state.cards.push(JSON.parse(JSON.stringify(c)));
+    have.add(k); added++;
+  }
+  state.seeded = true;
+  state.seedVer = APP.seedVer;
+  return added;
+}
+function applyIndexMigration(){
+  let n = 0;
+  for (const c of state.cards){
+    if (c.idxAuto === false) continue;
+    const g = chapterIndex(c.q, c.a, c.tags);
+    if (!c.idx || c.idx.join('|') !== g.join('|')){ c.idx = g; c.idxAuto = true; n++; }
+  }
+  state.idxVer = 1;
+  return n;
+}
+function reindexAuto(){
+  let n = 0;
+  for (const c of state.cards){
+    if (c.idxAuto === false) continue;
+    const g = chapterIndex(c.q, c.a, c.tags);
+    if (!c.idx || c.idx.join('|') !== g.join('|')){ c.idx = g; n++; }
+  }
+  return n;
+}
+
+/* 查重 */
+function findDupes(){
+  const m = new Map();
+  for (const c of state.cards){
+    const k = key(c.q);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(c);
+  }
+  const out = [];
+  m.forEach(arr => { if (arr.length > 1) out.push(arr); });
+  return out;
+}
+function dedupe(){
+  const groups = findDupes();
+  let removed = 0;
+  for (const g of groups){
+    g.sort((a,b) => (b.reps-a.reps) || (b.stage-a.stage) ||
+      ((b.mark?1:0)-(a.mark?1:0)) || (b.star-a.star));
+    const keep = g[0];
+    for (const c of g.slice(1)){
+      if (c.mark) keep.mark = true;
+      if (c.star > keep.star) keep.star = c.star;
+      if (!keep.code && c.code) keep.code = c.code;
+      keep.refs = Array.from(new Set((keep.refs||[]).concat(c.refs||[]))).slice(0,6);
+      const i = state.cards.indexOf(c);
+      if (i > -1){ state.cards.splice(i,1); removed++; }
+    }
+  }
+  return removed;
+}
+
+/* 计时 */
+let timerHandle = null;
+function startTimer(){
+  if (timerHandle) return;
+  timerHandle = setInterval(() => {
+    if (document.hidden || curTab !== 'review') return;
+    ensureToday();
+    state.today.seconds = (state.today.seconds || 0) + 1;
+    paintTime();
+    if (state.today.seconds % 20 === 0) save();
+  }, 1000);
+}
+function paintTime(){
+  ensureToday();
+  const t = mmss(state.today.seconds);
+  const mode = state.settings.mode === 'cram' ? '突击模式' : APP.sub;
+  if (D('hintSub')) D('hintSub').textContent = mode + ' · ' + state.cards.length + ' 张 · 今日 ' + t;
+  if (D('cramTime')) D('cramTime').textContent = t;
+}
+
+/* 计数与队列 */
+function counts(){
+  ensureToday();
+  const end = endOfToday();
+  let due = 0, fresh = 0;
+  for (const c of state.cards){
+    if (c.reps === 0) fresh++;
+    else if (c.due <= end) due++;
+  }
+  const quota = Math.max(0, state.settings.dailyNew - state.today.newCount);
+  return { due:due, fresh:fresh, quota:quota };
+}
+const markedCount = () => state.cards.filter(c => c.mark).length;
+function buildList(){
+  ensureToday();
+  const end = endOfToday();
+  const due = state.cards.filter(c => c.reps > 0 && c.due <= end)
+    .sort((a,b) => (b.star-a.star) || (a.due-b.due) || (a.stage-b.stage));
+  const quota = Math.max(0, state.settings.dailyNew - state.today.newCount);
+  const fresh = state.cards.filter(c => c.reps === 0).slice(0, quota);
+  return due.concat(fresh).map(c => c.id);
+}
+
+/* 复习会话 */
+let session = { list:[], pos:0, revealed:false, hist:{}, fin:{}, orig:{}, custom:false };
+const getCard = id => state.cards.find(c => c.id === id);
+const getByCode = code => state.cards.find(c => c.code === code);
+const curCard = () => getCard(session.list[session.pos]);
+function newSession(ids){
+  session = { list:ids.slice(), pos:0, revealed:false, hist:{}, fin:{}, orig:{}, custom:false };
+}
+function finalTally(){
+  const d = { f:0, o:0, e:0 };
+  for (const k in session.fin){ const v = session.fin[k]; if (d[v] !== undefined) d[v]++; }
+  return d;
+}
+function skipFinal(from){
+  let i = from;
+  while (i < session.list.length && session.fin[session.list[i]]) i++;
+  return i;
+}
+function grade(kind){
+  const c = curCard();
+  if (!c) return;
+  ensureToday();
+  if (!session.orig[c.id])
+    session.orig[c.id] = { stage:c.stage, due:c.due, reps:c.reps, lapses:c.lapses };
+  const o = session.orig[c.id];
+  if (!session.hist[c.id]) session.hist[c.id] = [];
+  const h = session.hist[c.id];
+
+  c.stage = o.stage; c.due = o.due; c.reps = o.reps; c.lapses = o.lapses;
+
+  const t = now();
+  if (kind === 'f'){ c.stage = 0; c.due = t; c.lapses++; c.reps++; }
+  else {
+    const step = kind === 'e' ? 2 : 1;
+    c.stage = clamp(c.stage + step, 0, STAGE_MAX);
+    c.due = t + INTERVALS[c.stage] * DAY;
+    c.reps++;
+  }
+  c.lastAt = t;
+  h.push(kind);
+
+  if (h.length === 1){
+    if (o.reps === 0) state.today.newCount++;
+    state.today.reviewed++;
+  }
+
+  const fc = h.filter(x => x === 'f').length;
+  if (kind === 'f' && fc < 3){
+    session.list.push(c.id);
+    delete session.fin[c.id];
+  } else {
+    session.fin[c.id] = kind;
+  }
+
+  Sound.tap(kind);
+  session.revealed = false;
+  session.pos = skipFinal(session.pos + 1);
+  save(); render(); renderHeader(); renderBadge();
+}
+function goPrev(){
+  if (state.settings.mode === 'cram'){
+    if (cram.pos > 0){ cram.pos--; cram.revealed = false; render(); }
+  } else if (session.pos > 0){ session.pos--; session.revealed = false; render(); }
+}
+function goNext(){
+  if (state.settings.mode === 'cram'){
+    if (cram.pos < cram.list.length - 1){ cram.pos++; cram.revealed = false; render(); }
+  } else if (session.pos < session.list.length - 1){ session.pos++; session.revealed = false; render(); }
+}
+
+/* 突击模式 */
+let cram = { list:[], pos:0, revealed:false, doneSet:{}, unknownSet:{}, retry:{} };
+function cramSave(){
+  try {
+    localStorage.setItem(CRAM_KEY, JSON.stringify({ l:cram.list, p:cram.pos,
+      d:cram.doneSet, u:cram.unknownSet, r:cram.retry }));
+  } catch(e){}
+}
+let cramT = null;
+function cramSaveSoon(){
+  if (cramT) return;
+  cramT = setTimeout(() => { cramT = null; cramSave(); }, 400);
+}
+function cramLoad(){
+  try {
+    const raw = localStorage.getItem(CRAM_KEY);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    cram.list = Array.isArray(o.l) ? o.l.filter(id => getCard(id)) : [];
+    cram.pos = Number(o.p) || 0;
+    if (cram.pos > cram.list.length) cram.pos = cram.list.length;
+    cram.doneSet = (o.d && typeof o.d === 'object') ? o.d : {};
+    cram.unknownSet = (o.u && typeof o.u === 'object') ? o.u : {};
+    cram.retry = (o.r && typeof o.r === 'object') ? o.r : {};
+  } catch(e){}
+}
+function cramStart(fresh){
+  if (fresh || !cram.list.length){
+    cram.list = state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id);
+    cram.pos = 0; cram.revealed = false;
+    cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+    cramSave();
+  }
+}
+const cramCur = () => getCard(cram.list[cram.pos]);
+function cramGrade(kind){
+  const c = cramCur();
+  if (!c) return;
+  if (kind === 'k'){ cram.doneSet[c.id] = 1; delete cram.unknownSet[c.id]; }
+  else {
+    cram.unknownSet[c.id] = 1; delete cram.doneSet[c.id];
+    const n = cram.retry[c.id] || 0;
+    if (n < 2){ cram.retry[c.id] = n + 1; cram.list.push(c.id); }
+  }
+  cram.revealed = false;
+  cram.pos++;
+  Sound.tap(kind === 'k' ? 'o' : 'f');
+  cramSaveSoon(); render(); renderHeader(); renderBadge();
+}
+function cramToSRS(){
+  const set = new Set(Object.keys(cram.unknownSet));
+  const picked = state.cards.filter(c => set.has(c.id));
+  for (const c of picked){ c.stage = 0; c.reps = 0; c.due = 0; }
+  state.cards = picked.concat(state.cards.filter(c => !set.has(c.id)));
+  cram.list = []; cram.pos = 0; cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+  cramSave();
+  state.settings.mode = 'srs';
+  newSession([]);
+  saveDirty = true; flushSave(); renderAll();
+  toast('已把 ' + picked.length + ' 张转入间隔复习');
+}
+
+/* 音效 */
+const Sound = (function(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null, master = null;
+  function init(){
+    if (ctx || !AC) return ctx;
+    try {
+      ctx = new AC();
+      master = ctx.createGain(); master.gain.value = 0.4; master.connect(ctx.destination);
+    } catch(e){ ctx = null; }
+    return ctx;
+  }
+  function blip(f, dur, gain, type, t){
+    if (!init()) return;
+    if (ctx.state === 'suspended') { try { ctx.resume(); } catch(e){} }
+    const t0 = ctx.currentTime + (t || 0);
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  return {
+    unlock(){ const c = init(); if (c && c.state === 'suspended') { try { c.resume(); } catch(e){} } },
+    flip(){ blip(880, 0.09, 0.10); blip(1320, 0.08, 0.05, 'sine', 0.04); },
+    tap(k){
+      if (k === 'f'){ blip(300, 0.14, 0.10, 'triangle'); blip(220, 0.18, 0.07, 'sine', 0.05); }
+      else if (k === 'o'){ blip(660, 0.12, 0.11); blip(990, 0.14, 0.06, 'sine', 0.05); }
+      else { blip(784, 0.10, 0.10); blip(1046, 0.12, 0.08, 'sine', 0.05); blip(1568, 0.16, 0.05, 'sine', 0.10); }
+    }
+  };
+})();
+
+/* 渲染 */
+const GL = { f:'忘了', o:'一般', e:'很熟' };
+
+function renderHeader(){
+  const k = counts();
+  if (state.settings.mode === 'cram'){
+    D('cNew').textContent = state.cards.length - Object.keys(cram.doneSet).length;
+    D('cDue').textContent = Object.keys(cram.doneSet).length;
+  } else {
+    D('cNew').textContent = k.fresh;
+    D('cDue').textContent = k.due;
+  }
+  D('cMark').textContent = markedCount();
+  paintTime();
+}
+function renderBadge(){
+  const b = D('tabBadge');
+  let n;
+  if (state.settings.mode === 'cram'){
+    n = state.cards.length - Object.keys(cram.doneSet).length;
+  } else {
+    const k = counts(); n = k.due + Math.min(k.fresh, k.quota);
+  }
+  if (n > 0){ b.hidden = false; b.textContent = n > 99 ? '99+' : n; }
+  else b.hidden = true;
+}
+function render(){ return state.settings.mode === 'cram' ? renderCram() : renderSrs(); }
+
+function navHTML(done, total, atStart, atEnd){
+  return '<div class="navrow">'
+    + '<button class="navbtn" id="navPrev"' + (atStart ? ' disabled' : '') + '>‹ 上一张</button>'
+    + '<span class="navpos">已评 ' + done + ' / ' + total + '</span>'
+    + '<button class="navbtn" id="navNext"' + (atEnd ? ' disabled' : '') + '>下一张 ›</button>'
+    + '</div>';
+}
+function bindNav(){
+  const p = D('navPrev'), n = D('navNext');
+  if (p) p.onclick = goPrev;
+  if (n) n.onclick = goNext;
+}
+function doneBox(d){
+  return '<div class="donebox">'
+    + '<div class="dstat f"><b>' + d.f + '</b><span>忘了</span></div>'
+    + '<div class="dstat o"><b>' + d.o + '</b><span>一般</span></div>'
+    + '<div class="dstat e"><b>' + d.e + '</b><span>很熟</span></div></div>';
+}
+
+function renderSrs(){
+  const wrap = D('cardwrap'), bar = D('gradebar');
+  if (!state.cards.length){
+    wrap.innerHTML = '<div class="state"><div class="big">▤</div><h2>还没有卡片</h2>'
+      + '<p>去「卡片库」新建，或在设置里点「补齐题库」。</p><div class="row">'
+      + '<button class="pbtn pri" id="goAdd">新建卡片</button>'
+      + '<button class="pbtn" id="goCards">去卡片库</button></div></div>';
+    bar.innerHTML = '';
+    if (D('goAdd')) D('goAdd').onclick = () => openEditor(null);
+    if (D('goCards')) D('goCards').onclick = () => switchTab('cards');
+    return;
+  }
+  if (!session.list.length) newSession(buildList());
+
+  if (!session.list.length){
+    const k = counts(), d = finalTally(), sum = d.f + d.o + d.e;
+    let h = '<div class="state">';
+    if (k.due === 0 && k.fresh > 0 && k.quota === 0){
+      h += '<div class="big">◷</div><h2>今日新卡额度已用完</h2>'
+        + '<p>还有 <b>' + k.fresh + '</b> 张没学过的新卡。今日已学 '
+        + state.today.newCount + ' / ' + state.settings.dailyNew + '。</p>'
+        + '<div class="row"><button class="pbtn pri" id="btnMore">再学 50 张新卡</button>'
+        + '<button class="pbtn" id="btnCram">突击模式</button></div>';
+    } else {
+      h += '<div class="big">✦</div><h2>' + (sum ? '今天这一轮完成了' : '现在没有要复习的卡') + '</h2>'
+        + '<p>' + (sum ? '已按记忆曲线排好下次复习时间，明天再来。'
+                       : '没有到期卡，也没有待学新卡。可以「自由过一轮」或进突击模式。') + '</p>'
+        + (sum ? doneBox(d) : '')
+        + '<div class="row"><button class="pbtn pri" id="btnFree">自由过一轮</button>'
+        + '<button class="pbtn" id="btnCram">突击模式</button></div>';
+    }
+    wrap.innerHTML = h + '</div>';
+    bar.innerHTML = '';
+    if (D('btnMore')) D('btnMore').onclick = () => {
+      state.settings.dailyNew = Math.min(1000, state.settings.dailyNew + 50);
+      save(); newSession(buildList()); renderAll();
+      toast('额度已提高到 ' + state.settings.dailyNew);
+    };
+    if (D('btnFree')) D('btnFree').onclick = () => {
+      newSession(state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id));
+      renderSrs();
+    };
+    if (D('btnCram')) D('btnCram').onclick = () => {
+      state.settings.mode = 'cram'; cramStart(true); save(); renderAll();
+    };
+    return;
+  }
+
+  if (session.pos >= session.list.length){
+    const d = finalTally();
+    const uniq = new Set(session.list).size;
+    wrap.innerHTML = '<div class="state"><div class="big">✦</div><h2>本轮完成</h2>'
+      + '<p>共处理 <b>' + uniq + '</b> 张' + (session.custom ? '（自定义筛选）' : '')
+      + '，今日累计 ' + mmss(state.today.seconds) + '。</p>'
+      + doneBox(d)
+      + '<div class="row"><button class="pbtn pri" id="btnRound">再过一轮</button>'
+      + (session.custom ? '<button class="pbtn" id="btnNorm">回到正常复习</button>'
+                        : '<button class="pbtn" id="btnFree">自由过一轮</button>')
+      + '</div></div>';
+    bar.innerHTML = '';
+    if (D('btnRound')) D('btnRound').onclick = () => {
+      newSession(Array.from(new Set(session.list))); render();
+    };
+    if (D('btnNorm')) D('btnNorm').onclick = () => { newSession(buildList()); render(); };
+    if (D('btnFree')) D('btnFree').onclick = () => {
+      newSession(state.cards.slice().sort((a,b) => b.star-a.star).map(c => c.id)); render();
+    };
+    return;
+  }
+
+  const c = curCard();
+  if (!c){ session.pos++; return renderSrs(); }
+
+  wrap.innerHTML = cardHTML(c, session.revealed);
+  wrap.scrollTop = 0;
+
+  const uniq = new Set(session.list).size;
+  const done = Object.keys(session.fin).length;
+  const g = session.fin[c.id];
+  let h = navHTML(done, uniq, session.pos <= 0, session.pos >= session.list.length - 1);
+  if (!session.revealed){
+    h += '<button class="revealbtn" id="reveal">显示答案</button>';
+  } else if (g){
+    h += '<div class="gradednote">本轮已评为「' + GL[g] + '」· 点同档位可重评</div>'
+      + '<div class="grades" style="margin-top:8px">'
+      + ['f','o','e'].map(k => '<button class="gbtn ' + k + (k === g ? ' sel' : '') + '" data-g="' + k + '">'
+          + GL[k] + '<small>' + (k === 'f' ? '今天再来' : k === 'o' ? '+1 阶' : '+2 阶') + '</small></button>').join('')
+      + '</div>';
+  } else {
+    h += '<div class="grades">'
+      + '<button class="gbtn f" data-g="f">忘了<small>稍后再来</small></button>'
+      + '<button class="gbtn o" data-g="o">一般<small>+1 阶</small></button>'
+      + '<button class="gbtn e" data-g="e">很熟<small>+2 阶</small></button></div>';
+  }
+  bar.innerHTML = h;
+  bindNav();
+  if (D('reveal')) D('reveal').onclick = reveal;
+  bindCard(c, session.revealed ? null : reveal);
+  bar.querySelectorAll('[data-g]').forEach(b => { b.onclick = () => grade(b.dataset.g); });
+}
+
+function renderCram(){
+  const wrap = D('cardwrap'), bar = D('gradebar');
+  if (!state.cards.length){
+    wrap.innerHTML = '<div class="state"><div class="big">▤</div><h2>还没有卡片</h2>'
+      + '<div class="row"><button class="pbtn pri" id="goCards">去卡片库</button></div></div>';
+    bar.innerHTML = '';
+    if (D('goCards')) D('goCards').onclick = () => switchTab('cards');
+    return;
+  }
+  if (!cram.list.length) cramStart(true);
+
+  const total = state.cards.length;
+  const done = Object.keys(cram.doneSet).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const head = '<div class="progline"><span>已认 ' + done + ' / ' + total + '</span>'
+    + '<span class="progbar"><b style="width:' + pct + '%"></b></span>'
+    + '<span id="cramTime">' + mmss(state.today.seconds) + '</span></div>';
+
+  if (cram.pos >= cram.list.length){
+    const unk = Object.keys(cram.unknownSet).length;
+    wrap.innerHTML = head + '<div class="state"><div class="big">✦</div><h2>全部过完了</h2>'
+      + '<p>共 ' + total + ' 张，其中标记「不认识」的 <b>' + unk + ' 张</b>。</p>'
+      + '<div class="row"><button class="pbtn pri" id="cToSrs">转入间隔复习（' + unk + '）</button>'
+      + '<button class="pbtn" id="cBack">回到第一张</button>'
+      + '<button class="pbtn" id="cRestart">重头再突击</button></div></div>';
+    bar.innerHTML = '';
+    if (D('cToSrs')) D('cToSrs').onclick = cramToSRS;
+    if (D('cBack')) D('cBack').onclick = () => { cram.pos = 0; cram.revealed = false; render(); };
+    if (D('cRestart')) D('cRestart').onclick = () => { cramStart(true); renderAll(); };
+    return;
+  }
+
+  const c = cramCur();
+  if (!c){ cram.pos++; return renderCram(); }
+
+  wrap.innerHTML = head + cardHTML(c, cram.revealed);
+  wrap.scrollTop = 0;
+
+  let h = navHTML(done, total, cram.pos <= 0, cram.pos >= cram.list.length - 1);
+  if (!cram.revealed){
+    h += '<button class="revealbtn" id="reveal">显示答案</button>';
+  } else {
+    h += '<div class="grades two">'
+      + '<button class="gbtn f" data-g="n">不认识<small>稍后再来</small></button>'
+      + '<button class="gbtn o" data-g="k">认识<small>标记通过</small></button></div>';
+  }
+  bar.innerHTML = h;
+  bindNav();
+  const fn = () => { cram.revealed = true; Sound.unlock(); Sound.flip(); renderCram(); };
+  if (D('reveal')) D('reveal').onclick = fn;
+  bindCard(c, cram.revealed ? null : fn);
+  bar.querySelectorAll('[data-g]').forEach(b => {
+    b.onclick = () => cramGrade(b.dataset.g === 'k' ? 'k' : 'n');
+  });
+}
+
+function bindCard(c, revealFn){
+  const qc = D('qcard');
+  if (qc) qc.onclick = e => {
+    const r = e.target.closest ? e.target.closest('[data-ref]') : null;
+    if (r){
+      e.stopPropagation();
+      const t = getByCode(r.dataset.ref);
+      if (t) openEditor(t.id); else toast('找不到卡片 ' + r.dataset.ref);
+      return;
+    }
+    if (revealFn) revealFn();
+  };
+  const mb = D('markBtn');
+  if (mb) mb.onclick = e => { e.stopPropagation(); toggleMark(c); };
+}
+function toggleMark(c){
+  if (!c) return;
+  c.mark = !c.mark;
+  save(); render(); renderHeader();
+  if (navigator.vibrate) navigator.vibrate(10);
+  toast(c.mark ? '已加入个人标记' : '已取消标记');
+}
+function cardHTML(c, revealed){
+  let tags = '<div class="tagrow">';
+  if (c.star) tags += '<span class="tag star" style="' + STAR_STYLE[c.star] + '">'
+    + '★★★'.slice(0, c.star) + '</span>';
+  if (c.code) tags += '<span class="tag code">#' + esc(c.code) + '</span>';
+  if (c.tags && c.tags.length){
+    tags += '<span class="tag" style="' + tagStyle(lastTag(c)) + '">' + esc(lastTag(c)) + '</span>';
+    c.tags.slice(0, -1).forEach(t => { tags += '<span class="tag ghost">' + esc(t) + '</span>'; });
+  }
+  if (state.settings.mode === 'srs') tags += '<span class="tag ghost">第 ' + c.stage + ' 阶</span>';
+  tags += '<button class="markbtn' + (c.mark ? ' on' : '') + '" id="markBtn">⚑</button></div>';
+
+  const idx = (c.idx && c.idx.length === 3)
+    ? '<div class="idxline"><b>' + esc(c.idx[0]) + '</b> › ' + esc(c.idx[1]) + ' › ' + esc(c.idx[2]) + '</div>'
+    : '';
+
+  let h = '<div class="qcard' + (c.mark ? ' marked' : '') + '" id="qcard">'
+    + tags + idx + '<div class="qtext">' + c.q + '</div>';
+  if (revealed){
+    h += '<div class="divider"></div><div class="atext">' + c.a + '</div>';
+    if (c.tip) h += '<div class="tipbox">' + c.tip + '</div>';
+    if (c.refs && c.refs.length){
+      h += '<div class="refbox"><span>关联</span>'
+        + c.refs.map(r => '<button class="refchip" data-ref="' + esc(r) + '">#' + esc(r) + '</button>').join('')
+        + '</div>';
+    }
+  } else {
+    h += '<div class="askhint"><i>◔</i>轻点卡片显示答案</div>';
+  }
+  return h + '</div>';
+}
+function reveal(){
+  if (session.revealed) return;
+  session.revealed = true; Sound.unlock(); Sound.flip(); renderSrs();
+}
+
+/* 卡片库 */
+let filter = { kind:'all', val:null };
+let keyword = '', shown = 50;
+function tagSet(){
+  const s = new Set();
+  for (const c of state.cards){ const t = lastTag(c); if (t) s.add(t); }
+  return Array.from(s);
+}
+function matchIdx(c, path){
+  if (!path || !path.length) return true;
+  const p = c.idx || [];
+  for (let i = 0; i < path.length; i++) if (p[i] !== path[i]) return false;
+  return true;
+}
+function renderChips(){
+  const crumb = D('crumb');
+  if (filter.kind === 'idx' && filter.val && filter.val.length){
+    crumb.hidden = false;
+    crumb.innerHTML = '<span>' + filter.val.map(esc).join(' › ') + '</span><b id="crumbX">清除</b>';
+    D('crumbX').onclick = () => { filter = { kind:'all', val:null }; renderChips(); renderList(); };
+  } else crumb.hidden = true;
+
+  let h = '<button class="chip' + (filter.kind === 'all' ? ' on' : '') + '" data-k="all">全部</button>';
+  const mn = markedCount();
+  if (mn) h += '<button class="chip mark' + (filter.kind === 'mark' ? ' on' : '')
+    + '" data-k="mark">⚑ 标记 ' + mn + '</button>';
+  if (state.cards.some(c => c.star > 0)){
+    [3,2,1].forEach(n => {
+      h += '<button class="chip' + (filter.kind === 'star' && filter.val === n ? ' on' : '')
+        + '" data-k="star" data-v="' + n + '">' + '★★★'.slice(0, n) + '</button>';
+    });
+  }
+  tagSet().forEach(t => {
+    h += '<button class="chip' + (filter.kind === 'tag' && filter.val === t ? ' on' : '')
+      + '" data-k="tag" data-v="' + esc(t) + '">' + esc(t) + '</button>';
+  });
+  D('chips').innerHTML = h;
+  D('chips').querySelectorAll('[data-k]').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.k;
+      if (k === 'all') filter = { kind:'all', val:null };
+      else if (k === 'mark') filter = { kind:'mark', val:null };
+      else if (k === 'star') filter = { kind:'star', val:Number(b.dataset.v) };
+      else filter = { kind:'tag', val:b.dataset.v };
+      shown = 50; renderChips(); renderList();
+    };
+  });
+}
+function filtered(){
+  const kw = keyword.trim().toLowerCase();
+  return state.cards.filter(c => {
+    if (filter.kind === 'mark' && !c.mark) return false;
+    if (filter.kind === 'tag' && lastTag(c) !== filter.val) return false;
+    if (filter.kind === 'star' && c.star !== filter.val) return false;
+    if (filter.kind === 'idx' && !matchIdx(c, filter.val)) return false;
+    if (!kw) return true;
+    const hay = (plain(c.q) + ' ' + plain(c.a) + ' ' + (c.tags||[]).join(' ') + ' '
+      + (c.idx||[]).join(' ') + ' ' + (c.code||'') + ' ' + (c.refs||[]).join(' ')).toLowerCase();
+    return hay.indexOf(kw) > -1;
+  });
+}
+function stageLabel(c){
+  if (c.reps === 0) return { txt:'新卡', cls:'new' };
+  if (c.due <= endOfToday()) return { txt:'到期', cls:'due' };
+  const d = Math.max(1, Math.ceil((c.due - now()) / DAY));
+  return { txt:'+' + d + 'd', cls:'' };
+}
+function renderList(){
+  const list = filtered(), box = D('listwrap');
+  if (!list.length){ box.innerHTML = '<div class="empty">没有匹配的卡片</div>'; return; }
+  let h = '<div class="idxsum" style="margin-bottom:8px">筛选结果 <b>' + list.length
+    + '</b> 张 · 全部 <b>' + state.cards.length + '</b> 张</div>';
+  if (filter.kind === 'mark'){
+    h += '<button class="more go" id="reviewMark">只复习这 ' + list.length + ' 张（个人标记）</button>';
+  }
+  list.slice(0, shown).forEach(c => {
+    const st = stageLabel(c), t = lastTag(c);
+    h += '<div class="litem' + (c.mark ? ' marked' : '') + '" data-id="' + c.id + '">'
+      + '<div class="ldot"' + (t ? ' style="background:' + tagColor(t) + '"' : '') + '></div>'
+      + '<div class="lmain"><div class="lq">' + c.q + '</div><div class="lmeta">'
+      + (c.mark ? '<span class="lflag">⚑</span>' : '')
+      + (c.code ? '<span class="lcode">#' + esc(c.code) + '</span>' : '')
+      + (c.star ? '<span class="tag star" style="' + STAR_STYLE[c.star] + '">'
+          + '★★★'.slice(0, c.star) + '</span>' : '')
+      + '<span>' + esc((c.tags||[]).slice(0,-1).join(' · ') || '未分类') + '</span>'
+      + (c.idx ? '<span class="lidx">' + esc(c.idx[1] + '·' + c.idx[2]) + '</span>' : '')
+      + '<span>' + (c.reps ? '复习 ' + c.reps : '未学') + '</span>'
+      + (c.lapses ? '<span>错 ' + c.lapses + '</span>' : '')
+      + '</div></div>'
+      + '<div class="lright"><span class="stage ' + st.cls + '">' + st.txt + '</span>'
+      + '<span class="ldel" data-del="' + c.id + '">删</span></div></div>';
+  });
+  if (list.length > shown)
+    h += '<button class="more" id="moreBtn">还有 ' + (list.length - shown) + ' 张，点击加载</button>';
+  box.innerHTML = h;
+
+  if (D('reviewMark')) D('reviewMark').onclick = () => {
+    newSession(list.map(c => c.id));
+    session.custom = true;
+    switchTab('review');
+  };
+  box.querySelectorAll('.litem').forEach(el => {
+    el.onclick = e => { if (e.target.dataset && e.target.dataset.del) return; openEditor(el.dataset.id); };
+  });
+  box.querySelectorAll('[data-del]').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); removeCard(el.dataset.del); };
+  });
+  if (D('moreBtn')) D('moreBtn').onclick = () => { shown += 100; renderList(); };
+}
+function removeCard(id){
+  const i = state.cards.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const back = state.cards[i];
+  state.cards.splice(i,1); save(); renderAll();
+  toast('已删除', '撤销', () => { state.cards.splice(i,0,back); save(); renderAll(); });
+}
+
+/* 索引 */
+const idxOpen = new Set();
+function renderIndex(){
+  const box = D('idxwrap');
+  if (!state.cards.length){ box.innerHTML = '<div class="empty">还没有卡片</div>'; return; }
+  const tree = new Map();
+  for (const c of state.cards){
+    const p = (c.idx && c.idx.length === 3) ? c.idx : ['未分类','未分类','未分类'];
+    if (!tree.has(p[0])) tree.set(p[0], new Map());
+    const m2 = tree.get(p[0]);
+    if (!m2.has(p[1])) m2.set(p[1], new Map());
+    const m3 = m2.get(p[1]);
+    m3.set(p[2], (m3.get(p[2]) || 0) + 1);
+  }
+  const k = counts();
+  const auto = state.cards.filter(c => c.idxAuto).length;
+  let h = '<div class="idxsum">共 <b>' + state.cards.length + '</b> 张 · 未学 <b>' + k.fresh
+    + '</b> · 到期 <b>' + k.due + '</b> · 标记 <b>' + markedCount() + '</b><br>'
+    + tree.size + ' 个学科，' + Array.from(tree.values()).reduce((s,m) => s + m.size, 0) + ' 个科目'
+    + (auto ? '，其中 <b>' + auto + '</b> 张索引自动判断' : '') + '</div>';
+
+  tree.forEach((m2, l1) => {
+    let n1 = 0;
+    m2.forEach(m3 => { m3.forEach(v => { n1 += v; }); });
+    const open1 = idxOpen.has(l1);
+    h += '<div class="idxrow l1" data-nv="1" data-k="' + esc(l1) + '">'
+      + '<span class="idxarrow">' + (open1 ? '▾' : '▸') + '</span>'
+      + '<span class="idxname">' + esc(l1) + '</span><span class="idxcnt">' + n1 + '</span></div>';
+    if (!open1) return;
+    m2.forEach((m3, l2) => {
+      const key2 = l1 + '/' + l2;
+      let n2 = 0;
+      m3.forEach(v => { n2 += v; });
+      const open2 = idxOpen.has(key2);
+      h += '<div class="idxrow l2" data-nv="2" data-v="' + esc(key2) + '">'
+        + '<span class="idxarrow">' + (open2 ? '▾' : '▸') + '</span>'
+        + '<span class="idxname">' + esc(l2) + '</span><span class="idxcnt">' + n2 + '</span></div>';
+      if (!open2) return;
+      m3.forEach((n3, l3) => {
+        h += '<div class="idxrow l3" data-nv="3" data-v=\'' + esc(JSON.stringify([l1, l2, l3])) + '\'>'
+          + '<span class="idxarrow">›</span><span class="idxname">' + esc(l3) + '</span>'
+          + '<span class="idxcnt">' + n3 + '</span></div>';
+      });
+    });
+  });
+  h += '<div class="idxtip">点第三层进入卡片库筛选；<b>长按</b>科目可看该科目全部卡片。</div>';
+  box.innerHTML = h;
+
+  box.querySelectorAll('.idxrow').forEach(el => {
+    const lv = el.dataset.nv;
+    if (lv === '1'){
+      const kk = el.dataset.k;
+      el.onclick = () => { idxOpen.has(kk) ? idxOpen.delete(kk) : idxOpen.add(kk); renderIndex(); };
+    } else if (lv === '2'){
+      const kk = el.dataset.v, path = kk.split('/');
+      let timer = null;
+      el.onclick = () => {
+        if (timer){ clearTimeout(timer); timer = null; return; }
+        idxOpen.has(kk) ? idxOpen.delete(kk) : idxOpen.add(kk); renderIndex();
+      };
+      el.addEventListener('pointerdown', () => {
+        timer = setTimeout(() => {
+          timer = null;
+          filter = { kind:'idx', val:path }; shown = 50;
+          switchTab('cards'); renderChips(); renderList();
+        }, 520);
+      });
+      ['pointerup','pointercancel','pointerleave'].forEach(ev => {
+        el.addEventListener(ev, () => { if (timer){ clearTimeout(timer); timer = null; } });
+      });
+    } else {
+      el.onclick = () => {
+        try { filter = { kind:'idx', val:JSON.parse(el.dataset.v) }; } catch(e){ return; }
+        shown = 50; switchTab('cards'); renderChips(); renderList();
+      };
+    }
+  });
+}
+
+/* 编辑器 */
+let editingId = null, editStar = 0, editMark = false;
+let editIdx = [TOP, SUBJECTS[0], TYPES[0]];
+function renderIdxPick(){
+  const mk = (arr, cur, lv) => arr.map(v =>
+    '<button class="opt' + (v === cur ? ' on' : '') + '" data-lv="' + lv + '" data-v="' + esc(v) + '">'
+    + esc(v) + '</button>').join('');
+  D('edIdx1').innerHTML = mk([TOP], editIdx[0], 0);
+  D('edIdx2').innerHTML = mk(SUBJECTS, editIdx[1], 1);
+  D('edIdx3').innerHTML = mk(TYPES, editIdx[2], 2);
+  D('edIdxHint').textContent = editIdx.join(' › ');
+}
+function paintStar(){
+  D('edStar').querySelectorAll('[data-s]').forEach(b => {
+    b.classList.toggle('on', Number(b.dataset.s) === editStar);
+  });
+}
+function paintMark(){
+  D('edMark').querySelectorAll('[data-mk]').forEach(b => {
+    b.classList.toggle('on', (b.dataset.mk === '1') === editMark);
+  });
+}
+function updateCounts(){
+  const set = (el, n, lim) => { el.textContent = n + ' / ' + lim; el.classList.toggle('over', n > lim); };
+  set(D('cntQ'), D('edQ').value.length, LIM_Q);
+  set(D('cntA'), D('edA').value.length, LIM_A);
+  set(D('cntT'), D('edT').value.length, LIM_T);
+}
+function openEditor(id){
+  editingId = id || null;
+  const c = id ? getCard(id) : null;
+  D('edTitle').textContent = c ? '编辑卡片' : '新建卡片';
+  D('edStage').textContent = c ? ('第 ' + c.stage + ' 阶 · 已复习 ' + c.reps + ' 次')
+    : ('剩余可添加 ' + Math.max(0, MAX_CARDS - state.cards.length) + ' 张');
+  D('edQ').value = c ? plain(c.q) : '';
+  D('edA').value = c ? plain(c.a).replace(/<br>/g, '\n') : '';
+  D('edT').value = c ? plain(c.tip) : '';
+  D('edG').value = c ? (c.tags || []).join('::') : (SUBJECTS[0] ? '' : '');
+  D('edCode').value = c ? c.code : '';
+  D('edRefs').value = (c && c.refs) ? c.refs.join(', ') : '';
+  editStar = c ? c.star : 0;
+  editMark = c ? !!c.mark : false;
+  editIdx = (c && c.idx && c.idx.length === 3) ? c.idx.slice() : [TOP, SUBJECTS[0], TYPES[0]];
+  paintStar(); paintMark(); renderIdxPick(); updateCounts();
+  D('edDel').hidden = !c;
+  D('maskEdit').hidden = false;
+}
+D('edStar').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-s]') : null;
+  if (!b) return;
+  editStar = Number(b.dataset.s); paintStar();
+};
+D('edMark').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-mk]') : null;
+  if (!b) return;
+  editMark = b.dataset.mk === '1'; paintMark();
+};
+['edIdx1','edIdx2','edIdx3'].forEach(id => {
+  D(id).onclick = e => {
+    const b = e.target.closest ? e.target.closest('[data-lv]') : null;
+    if (!b) return;
+    editIdx[Number(b.dataset.lv)] = b.dataset.v; renderIdxPick();
+  };
+});
+D('edIdxGuess').onclick = () => {
+  editIdx = guessIndex(D('edQ').value, D('edA').value, D('edG').value.split('::'));
+  renderIdxPick(); toast('已按内容判断，可再手改');
+};
+['edQ','edA','edT'].forEach(id => { D(id).addEventListener('input', updateCounts); });
+
+D('edSave').onclick = () => {
+  const q = cleanInline(D('edQ').value.replace(/\n/g, '<br>'));
+  const a = cleanInline(D('edA').value.replace(/\n/g, '<br>'));
+  const tip = cleanInline(D('edT').value.replace(/\n/g, '<br>'));
+  const tags = D('edG').value.split('::').map(s => s.trim()).filter(Boolean);
+  const code = D('edCode').value.trim().replace(/^#/, '').toUpperCase().slice(0, 12);
+  const refs = D('edRefs').value.split(/[,，\s]+/)
+    .map(s => s.replace(/^#/,'').toUpperCase()).filter(Boolean).slice(0, 6);
+  if (!plain(q)){ toast('问题不能为空'); return; }
+  if (!plain(a)){ toast('答案不能为空'); return; }
+  if (editingId){
+    const c = getCard(editingId);
+    if (c){
+      c.q = q; c.a = a; c.tip = tip; c.tags = tags; c.star = editStar; c.mark = editMark;
+      c.code = code; c.refs = refs; c.idx = editIdx.slice(); c.idxAuto = false;
+    }
+  } else {
+    if (state.cards.length >= MAX_CARDS){ toast('已达上限'); return; }
+    state.cards.push(sanitizeCard({ q:q, a:a, tip:tip, tags:tags, star:editStar, mark:editMark,
+      code:code, refs:refs, idx:editIdx.slice(), idxAuto:false, stage:0, due:0, reps:0, created:now() }));
+  }
+  save(); D('maskEdit').hidden = true; newSession([]); renderAll();
+  toast(editingId ? '已保存' : '已添加');
+};
+D('edDel').onclick = () => {
+  if (!editingId) return;
+  const id = editingId;
+  D('maskEdit').hidden = true; removeCard(id);
+};
+D('edCancel').onclick = () => { D('maskEdit').hidden = true; };
+
+/* 导入导出 */
+D('btnImport').onclick = () => { D('impText').value = ''; D('maskImport').hidden = false; };
+D('impCancel').onclick = () => { D('maskImport').hidden = true; };
+D('impOk').onclick = () => {
+  const res = parseSource(D('impText').value, false);
+  if (!res.cards.length){ toast('没有解析到有效卡片'); return; }
+  const room = Math.max(0, MAX_CARDS - state.cards.length);
+  const take = res.cards.slice(0, room);
+  const have = new Set(state.cards.map(c => key(c.q)));
+  let added = 0, skipped = 0;
+  for (const c of take){
+    const k = key(c.q);
+    if (have.has(k)){ skipped++; continue; }
+    state.cards.push(c); have.add(k); added++;
+  }
+  save(); flushSave(); D('maskImport').hidden = true; newSession([]);
+  if (state.settings.mode === 'cram') cramStart(true);
+  renderAll();
+  toast('导入 ' + added + ' 张' + (skipped ? '，跳过重复 ' + skipped : ''));
+};
+D('btnExport').onclick = () => {
+  D('expCount').textContent = state.cards.length + ' 张';
+  D('expText').value = JSON.stringify({ v:1, exportedAt:new Date().toISOString(),
+    count:state.cards.length, cards:state.cards }, null, 1);
+  D('maskExport').hidden = false;
+};
+D('expClose').onclick = () => { D('maskExport').hidden = true; };
+D('expCopy').onclick = async () => {
+  const t = D('expText').value;
+  try { await navigator.clipboard.writeText(t); toast('已复制'); return; } catch(e){}
+  try { D('expText').select(); document.execCommand('copy'); toast('已复制'); }
+  catch(e){ toast('复制失败，请长按全选'); }
+};
+D('expFile').onclick = () => {
+  try {
+    const blob = new Blob([D('expText').value], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = APP.name + '-备份-' + todayKey() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('已生成备份文件');
+  } catch(e){ toast('下载失败，请改用复制'); }
+};
+
+/* 设置 */
+function openSettings(){
+  D('setStat').textContent = state.cards.length + ' 张';
+  D('optMode').querySelectorAll('[data-m]').forEach(b => {
+    b.classList.toggle('on', b.dataset.m === state.settings.mode);
+  });
+  D('optNew').querySelectorAll('[data-n]').forEach(b => {
+    b.classList.toggle('on', Number(b.dataset.n) === state.settings.dailyNew);
+  });
+  const k = counts(), bank = seedParsed().cards.length;
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  let size = 0;
+  try { size = new Blob([JSON.stringify(state.cards)]).size; } catch(e){}
+  D('todayNote').innerHTML =
+      '内置题库 <b>' + bank + '</b> 张（版本 ' + APP.seedVer + '）　本地 <b>'
+      + state.cards.length + '</b> 张<br>'
+    + '重复组 <b>' + groups.length + '</b> 组（多出 <b>' + extra + '</b> 张）<br>'
+    + '未学 <b>' + k.fresh + '</b>　到期 <b>' + k.due + '</b>　标记 <b>' + markedCount() + '</b><br>'
+    + '今日已学新卡 <b>' + state.today.newCount + '</b> / ' + state.settings.dailyNew
+    + '　复习 <b>' + state.today.reviewed + '</b> 次<br>'
+    + '今日时长 <b>' + mmss(state.today.seconds) + '</b>　存储约 <b>'
+    + (size/1024).toFixed(0) + ' KB</b>';
+  D('maskSet').hidden = false;
+}
+D('gear').onclick = openSettings;
+D('setDone').onclick = () => { D('maskSet').hidden = true; renderAll(); };
+D('setToday').onclick = () => {
+  ensureToday(); state.today.seconds = 0; save(); openSettings(); paintTime();
+  toast('今日学时已归零');
+};
+D('setResetToday').onclick = () => {
+  ensureToday(); state.today.newCount = 0; state.today.reviewed = 0;
+  newSession([]); save(); flushSave(); renderAll(); openSettings();
+  toast('已重置今日计数');
+};
+D('setSeed').onclick = () => {
+  const n = mergeSeed();
+  saveDirty = true; flushSave();
+  newSession([]); renderAll(); openSettings();
+  toast(n ? ('已补齐 ' + n + ' 张 · 共 ' + state.cards.length + ' 张')
+          : ('题库已完整 · 共 ' + state.cards.length + ' 张'));
+};
+D('setReindex').onclick = () => {
+  const n = reindexAuto();
+  saveDirty = true; flushSave();
+  renderAll(); openSettings();
+  toast(n ? ('已重算 ' + n + ' 张') : '索引没有需要更新的');
+};
+D('setDup').onclick = () => {
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  if (!extra){ toast('没有发现重复卡片'); return; }
+  const ok = window.confirm('发现 ' + groups.length + ' 组重复（共多出 ' + extra + ' 张）。\n\n'
+    + '清理会保留每组中复习进度最多的那一张，合并标记/星级/编号，其余删除。\n\n确定清理？');
+  if (!ok) return;
+  const n = dedupe();
+  save(); flushSave(); newSession([]); renderAll(); openSettings();
+  toast('已清理 ' + n + ' 张重复 · 共 ' + state.cards.length + ' 张');
+};
+D('setResetAll').onclick = () => {
+  const ok = window.confirm('重置全部复习进度：\n\n'
+    + '所有 ' + state.cards.length + ' 张卡都会变回「新卡」，'
+    + '阶数/到期时间/复习次数清零。\n\n卡片内容、个人标记、星级、编号、索引全部保留。\n\n确定？');
+  if (!ok) return;
+  for (const c of state.cards){
+    c.stage = 0; c.due = 0; c.reps = 0; c.lapses = 0; c.lastAt = 0;
+  }
+  ensureToday();
+  state.today.newCount = 0;
+  state.today.reviewed = 0;
+  newSession([]);
+  save(); flushSave(); renderAll(); openSettings();
+  toast('已重置，全部 ' + state.cards.length + ' 张变成新卡');
+};
+D('setClear').onclick = () => {
+  const ok = window.confirm('清空全部卡片：\n\n'
+    + '本地 ' + state.cards.length + ' 张卡会全部删除（包括自己加的）。\n'
+    + '内置题库不受影响，点「补齐题库」可重新装入。\n\n'
+    + '建议先「卡片库 → ⤒ 导出」备份。\n\n确定清空？');
+  if (!ok) return;
+  state.cards = [];
+  cram.list = []; cram.pos = 0; cram.doneSet = {}; cram.unknownSet = {}; cram.retry = {};
+  cramSave();
+  state.seeded = true;
+  state.seedVer = APP.seedVer;
+  ensureToday();
+  state.today.newCount = 0;
+  state.today.reviewed = 0;
+  newSession([]);
+  save(); flushSave(); renderAll(); openSettings();
+  toast('已清空。点「补齐题库」重新装入 ' + seedParsed().cards.length + ' 张');
+};
+D('optMode').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-m]') : null;
+  if (!b) return;
+  state.settings.mode = b.dataset.m;
+  if (state.settings.mode === 'cram') cramStart(!cram.list.length);
+  save(); flushSave();
+  D('optMode').querySelectorAll('[data-m]').forEach(x => { x.classList.toggle('on', x === b); });
+  renderAll();
+};
+D('optNew').onclick = e => {
+  const b = e.target.closest ? e.target.closest('[data-n]') : null;
+  if (!b) return;
+  state.settings.dailyNew = Number(b.dataset.n);
+  save();
+  D('optNew').querySelectorAll('[data-n]').forEach(x => { x.classList.toggle('on', x === b); });
+  newSession([]); renderAll(); openSettings();
+};
+
+/* 标签页 */
+let curTab = 'review';
+function switchTab(t){
+  curTab = t;
+  D('scrReview').hidden = (t !== 'review');
+  D('scrCards').hidden = (t !== 'cards');
+  D('scrIndex').hidden = (t !== 'index');
+  D('fab').hidden = (t === 'review');
+  document.querySelectorAll('.tab').forEach(b => { b.classList.toggle('on', b.dataset.tab === t); });
+  if (t === 'cards'){ renderChips(); renderList(); }
+  else if (t === 'index') renderIndex();
+  else render();
+  paintTime();
+}
+document.querySelectorAll('.tab').forEach(b => {
+  b.onclick = () => { Sound.unlock(); switchTab(b.dataset.tab); };
+});
+D('fab').onclick = () => openEditor(null);
+D('search').addEventListener('input', e => {
+  keyword = e.target.value; shown = 50; renderList();
+});
+
+document.addEventListener('keydown', e => {
+  if (!D('maskEdit').hidden || !D('maskImport').hidden
+      || !D('maskExport').hidden || !D('maskSet').hidden) return;
+  if (curTab !== 'review') return;
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); goPrev(); return; }
+  if (e.key === 'ArrowRight'){ e.preventDefault(); goNext(); return; }
+  const isCram = state.settings.mode === 'cram';
+  const rev = isCram ? cram.revealed : session.revealed;
+  if (e.key === ' ' || e.key === 'Enter'){
+    e.preventDefault();
+    if (!rev){
+      if (isCram){ cram.revealed = true; Sound.unlock(); Sound.flip(); renderCram(); }
+      else reveal();
+    }
+    return;
+  }
+  if (e.key.toLowerCase() === 'm' && !isCram){ toggleMark(curCard()); return; }
+  if (!rev) return;
+  if (isCram){
+    if (e.key === '1') cramGrade('n');
+    else if (e.key === '2') cramGrade('k');
+  } else {
+    if (e.key === '1') grade('f');
+    else if (e.key === '2') grade('o');
+    else if (e.key === '3') grade('e');
+  }
+});
+
+/* 提示 */
+let toastTimer = null;
+function toast(msg, actionLabel, onAction){
+  const el = D('toast');
+  if (!el) return;
+  el.innerHTML = ''; el.textContent = msg;
+  if (actionLabel && onAction){
+    const b = document.createElement('b');
+    b.textContent = ' ' + actionLabel;
+    b.style.cssText = 'color:#8FC8FF;margin-left:10px';
+    b.onclick = ev => { ev.stopPropagation(); hideToast(); onAction(); };
+    el.appendChild(b); el.style.pointerEvents = 'auto';
+  } else el.style.pointerEvents = 'none';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 4200);
+}
+function hideToast(){
+  const el = D('toast');
+  if (el) el.classList.remove('show');
+  clearTimeout(toastTimer);
+}
+function renderAll(){
+  renderHeader(); renderBadge();
+  if (curTab === 'cards'){ renderChips(); renderList(); }
+  else if (curTab === 'index') renderIndex();
+  else render();
+}
+
+/* 启动 */
+function boot(){
+  document.title = APP.name;
+  if (D('appName')) D('appName').textContent = APP.name;
+  ensureToday();
+  if (!load()) state.cards = [];
+
+  const fixed = normalizeAll();
+  let added = 0;
+  if (!state.seeded || (state.seedVer || 0) < APP.seedVer) added = mergeSeed();
+
+  let idxN = 0;
+  if ((state.idxVer || 0) < 1) idxN = applyIndexMigration();
+
+  saveDirty = true; flushSave();
+
+  cramLoad();
+  if (state.settings.mode === 'cram' && !cram.list.length) cramStart(true);
+  newSession([]);
+  renderHeader(); renderBadge(); switchTab('review');
+  startTimer();
+
+  const groups = findDupes();
+  const extra = groups.reduce((s,g) => s + g.length - 1, 0);
+  const msg = [];
+  if (added) msg.push('装入 ' + added + ' 张');
+  if (fixed) msg.push('修正 ' + fixed + ' 张');
+  if (idxN) msg.push('索引 ' + idxN + ' 张');
+  msg.push('共 ' + state.cards.length + ' 张');
+  setTimeout(() => {
+    toast(msg.join('，') + (extra ? '　⚠有 ' + extra + ' 张重复，去设置清理' : ''));
+  }, 350);
+}
+
+try { boot(); }
+catch (err){
+  const d = document.createElement('div');
+  d.id = 'fatal';
+  d.textContent = '初始化失败\n\n' + (err && err.stack ? err.stack : String(err))
+    + '\n\n把这段发给我。数据没丢，还在浏览器里。';
+  document.body.appendChild(d);
+}
+</script>
+
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+</body>
+</html>
