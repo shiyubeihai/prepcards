@@ -1,5 +1,5 @@
 /* 312 记忆卡 · 离线缓存 */
-const CACHE = 'memcard-312-v6';
+const CACHE = 'memcard-312-v7';
 
 const ASSETS = [
   './',

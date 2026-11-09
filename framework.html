@@ -163,6 +163,18 @@ color:var(--tx);font:16px/1.5 system-ui,-apple-system,"PingFang SC","Noto Sans S
 .toast{position:fixed;left:50%;transform:translate(-50%,140%);bottom:calc(86px + env(safe-area-inset-bottom));background:rgba(24,38,56,.95);color:#fff;font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:13px;z-index:60;opacity:0;transition:transform .22s,opacity .22s;pointer-events:none;max-width:88vw;text-align:center}
 .toast.show{transform:translate(-50%,0);opacity:1}
 #fatal{position:fixed;inset:0;z-index:99;background:#fff;padding:20px;font:12px/1.7 ui-monospace,Menlo,Consolas,monospace;color:#B3261E;overflow:auto;white-space:pre-wrap}
+/* 批注 */
+.notebox{border:1px dashed var(--line2);border-radius:14px;background:#F8F8FA;padding:10px 12px 8px;transition:background .15s,border-color .15s}
+.notebox.has{border-style:solid;background:#F5F5F8}
+.notehead{display:flex;align-items:center;font-size:11.5px;font-weight:700;letter-spacing:.5px;color:var(--dim2);margin-bottom:5px}
+.notehint{margin-left:auto;font-weight:600;color:var(--dim2)}
+.noteinput{display:block;width:100%;border:0;background:transparent;resize:none;outline:none;font:16px/1.7 inherit;color:var(--tx);min-height:42px;max-height:240px;padding:0;user-select:text;-webkit-user-select:text}
+.noteinput::placeholder{color:var(--dim2)}
+.tag.notetag{background:#FFF6DF;color:#A97A1F}
+.chip.note{color:#8A6A34;border-color:#EAD9B4}
+.chip.note.on{background:#C9861A;border-color:transparent;color:#fff}
+.lnotemark{color:#A97A1F;font-weight:800}
+.lnotetext{margin-top:4px;font-size:11.5px;line-height:1.5;color:#8C7A55;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -302,7 +314,7 @@ const APP = {
 };
 
 const MAX_CARDS = 3000;
-const LIM_Q = 400, LIM_A = 2000, LIM_T = 500;
+const LIM_Q = 400, LIM_A = 2000, LIM_T = 500, LIM_NOTE = 1000;
 const INTERVALS = [0,1,2,4,7,15,30,60];
 const STAGE_MAX = INTERVALS.length - 1;
 
@@ -466,6 +478,7 @@ function sanitizeCard(o){
     id: (typeof o.id === 'string' && o.id) ? o.id : uid(),
     q:q, a:a, tip: cleanInline(String(o.tip||'').slice(0,LIM_T)),
     code: typeof o.code === 'string' ? o.code.slice(0,12) : '',
+    note: typeof o.note === 'string' ? o.note.slice(0, LIM_NOTE) : '',
     refs: Array.isArray(o.refs) ? o.refs.slice(0,6).map(x => String(x).slice(0,12)) : [],
     tags: Array.isArray(o.tags) ? o.tags.slice(0,8).map(x => String(x).slice(0,24)) : [],
     star: Number.isInteger(o.star) ? clamp(o.star,0,3) : 0,
@@ -672,6 +685,7 @@ function counts(){
   return { due:due, fresh:fresh, quota:quota };
 }
 const markedCount = () => state.cards.filter(c => c.mark).length;
+const notedCount = () => state.cards.filter(c => c.note && c.note.trim()).length;
 function buildList(){
   ensureToday();
   const end = endOfToday();
@@ -1057,6 +1071,7 @@ function renderCram(){
 function bindCard(c, revealFn){
   const qc = D('qcard');
   if (qc) qc.onclick = e => {
+    if (e.target.closest && e.target.closest('.notebox')) return;
     const r = e.target.closest ? e.target.closest('[data-ref]') : null;
     if (r){
       e.stopPropagation();
@@ -1068,6 +1083,23 @@ function bindCard(c, revealFn){
   };
   const mb = D('markBtn');
   if (mb) mb.onclick = e => { e.stopPropagation(); toggleMark(c); };
+  bindNote(c);
+}
+function bindNote(c){
+  const ta = D('noteInput');
+  if (!ta) return;
+  const box = D('notebox'), tag = D('noteTag');
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = Math.min(240, ta.scrollHeight) + 'px'; };
+  grow();
+  ta.addEventListener('input', () => {
+    if (ta.value.length > LIM_NOTE) ta.value = ta.value.slice(0, LIM_NOTE);
+    const has = !!ta.value.trim();
+    if (has) c.note = ta.value; else delete c.note;
+    if (tag) tag.hidden = !has;
+    if (box) box.classList.toggle('has', has);
+    save(); grow();
+  });
+  ta.addEventListener('blur', flushSave);
 }
 function toggleMark(c){
   if (!c) return;
@@ -1086,6 +1118,7 @@ function cardHTML(c, revealed){
     c.tags.slice(0, -1).forEach(t => { tags += '<span class="tag ghost">' + esc(t) + '</span>'; });
   }
   if (state.settings.mode === 'srs') tags += '<span class="tag ghost">第 ' + c.stage + ' 阶</span>';
+  tags += '<span class="tag notetag"' + (c.note ? '' : ' hidden') + ' id="noteTag">✎ 已批注</span>';
   tags += '<button class="markbtn' + (c.mark ? ' on' : '') + '" id="markBtn">⚑</button></div>';
 
   const idx = (c.idx && c.idx.length === 3)
@@ -1102,6 +1135,10 @@ function cardHTML(c, revealed){
         + c.refs.map(r => '<button class="refchip" data-ref="' + esc(r) + '">#' + esc(r) + '</button>').join('')
         + '</div>';
     }
+    h += '<div class="notebox' + (c.note ? ' has' : '') + '" id="notebox">'
+      + '<div class="notehead"><span>✎ 批注</span><span class="notehint">自动保存</span></div>'
+      + '<textarea class="noteinput" id="noteInput" rows="2" placeholder="疑问、补充、易混点……随手写">'
+      + esc(c.note || '') + '</textarea></div>';
   } else {
     h += '<div class="askhint"><i>◔</i>轻点卡片显示答案</div>';
   }
@@ -1138,6 +1175,9 @@ function renderChips(){
   const mn = markedCount();
   if (mn) h += '<button class="chip mark' + (filter.kind === 'mark' ? ' on' : '')
     + '" data-k="mark">⚑ 标记 ' + mn + '</button>';
+  const nn = notedCount();
+  if (nn) h += '<button class="chip note' + (filter.kind === 'note' ? ' on' : '')
+    + '" data-k="note">✎ 批注 ' + nn + '</button>';
   if (state.cards.some(c => c.star > 0)){
     [3,2,1].forEach(n => {
       h += '<button class="chip' + (filter.kind === 'star' && filter.val === n ? ' on' : '')
@@ -1154,6 +1194,7 @@ function renderChips(){
       const k = b.dataset.k;
       if (k === 'all') filter = { kind:'all', val:null };
       else if (k === 'mark') filter = { kind:'mark', val:null };
+      else if (k === 'note') filter = { kind:'note', val:null };
       else if (k === 'star') filter = { kind:'star', val:Number(b.dataset.v) };
       else filter = { kind:'tag', val:b.dataset.v };
       shown = 50; renderChips(); renderList();
@@ -1164,12 +1205,14 @@ function filtered(){
   const kw = keyword.trim().toLowerCase();
   return state.cards.filter(c => {
     if (filter.kind === 'mark' && !c.mark) return false;
+    if (filter.kind === 'note' && !(c.note && c.note.trim())) return false;
     if (filter.kind === 'tag' && lastTag(c) !== filter.val) return false;
     if (filter.kind === 'star' && c.star !== filter.val) return false;
     if (filter.kind === 'idx' && !matchIdx(c, filter.val)) return false;
     if (!kw) return true;
     const hay = (plain(c.q) + ' ' + plain(c.a) + ' ' + (c.tags||[]).join(' ') + ' '
-      + (c.idx||[]).join(' ') + ' ' + (c.code||'') + ' ' + (c.refs||[]).join(' ')).toLowerCase();
+      + (c.idx||[]).join(' ') + ' ' + (c.code||'') + ' ' + (c.refs||[]).join(' ')
+      + ' ' + (c.note||'')).toLowerCase();
     return hay.indexOf(kw) > -1;
   });
 }
@@ -1187,12 +1230,16 @@ function renderList(){
   if (filter.kind === 'mark'){
     h += '<button class="more go" id="reviewMark">只复习这 ' + list.length + ' 张（个人标记）</button>';
   }
+  if (filter.kind === 'note'){
+    h += '<button class="more go" id="reviewNote">只复习这 ' + list.length + ' 张（有批注）</button>';
+  }
   list.slice(0, shown).forEach(c => {
     const st = stageLabel(c), t = lastTag(c);
     h += '<div class="litem' + (c.mark ? ' marked' : '') + '" data-id="' + c.id + '">'
       + '<div class="ldot"' + (t ? ' style="background:' + tagColor(t) + '"' : '') + '></div>'
       + '<div class="lmain"><div class="lq">' + c.q + '</div><div class="lmeta">'
       + (c.mark ? '<span class="lflag">⚑</span>' : '')
+      + (c.note ? '<span class="lnotemark">✎</span>' : '')
       + (c.code ? '<span class="lcode">#' + esc(c.code) + '</span>' : '')
       + (c.star ? '<span class="tag star" style="' + STAR_STYLE[c.star] + '">'
           + '★★★'.slice(0, c.star) + '</span>' : '')
@@ -1200,7 +1247,9 @@ function renderList(){
       + (c.idx ? '<span class="lidx">' + esc(c.idx[1] + '·' + c.idx[2]) + '</span>' : '')
       + '<span>' + (c.reps ? '复习 ' + c.reps : '未学') + '</span>'
       + (c.lapses ? '<span>错 ' + c.lapses + '</span>' : '')
-      + '</div></div>'
+      + '</div>'
+      + (c.note ? '<div class="lnotetext">' + esc(String(c.note).replace(/\n+/g, ' ')) + '</div>' : '')
+      + '</div>'
       + '<div class="lright"><span class="stage ' + st.cls + '">' + st.txt + '</span>'
       + '<span class="ldel" data-del="' + c.id + '">删</span></div></div>';
   });
@@ -1209,6 +1258,11 @@ function renderList(){
   box.innerHTML = h;
 
   if (D('reviewMark')) D('reviewMark').onclick = () => {
+    newSession(list.map(c => c.id));
+    session.custom = true;
+    switchTab('review');
+  };
+  if (D('reviewNote')) D('reviewNote').onclick = () => {
     newSession(list.map(c => c.id));
     session.custom = true;
     switchTab('review');
@@ -1430,7 +1484,8 @@ D('impOk').onclick = () => {
   toast('导入 ' + added + ' 张' + (skipped ? '，跳过重复 ' + skipped : ''));
 };
 D('btnExport').onclick = () => {
-  D('expCount').textContent = state.cards.length + ' 张';
+  D('expCount').textContent = state.cards.length + ' 张'
+    + (notedCount() ? ' · 含批注 ' + notedCount() + ' 条' : '');
   D('expText').value = JSON.stringify({ v:1, exportedAt:new Date().toISOString(),
     count:state.cards.length, cards:state.cards }, null, 1);
   D('maskExport').hidden = false;
